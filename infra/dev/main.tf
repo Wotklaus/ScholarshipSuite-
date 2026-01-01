@@ -1,4 +1,5 @@
 provider "aws" {
+  profile = "dev"
   region = "us-east-1"
 }
 
@@ -156,3 +157,23 @@ module "documentdb" {
 #   source = "../modules/route53"
 #   domain = "demo.example.com"
 # }
+
+output "bastion_public_ip" {
+  value = module.bastion.bastion_public_ip
+}
+
+output "rds_endpoint" {
+  value = module.rds.rds_endpoint
+}
+
+output "alb_dns_name" {
+  value = module.alb.alb_dns_name
+}
+
+output "api_gateway_url" {
+  value = module.api_gateway.api_gateway_endpoint
+}
+
+output "redis_endpoint" {
+  value = module.redis.redis_endpoint
+}
