@@ -1,0 +1,22 @@
+.container {
+  display: flex;
+  flex-direction: column; /* Centra el contenido en columna */
+  justify-content: center;
+  align-items: center;
+  background-color: #ffffff; /* Fondo blanco */
+  border-radius: 8px; /* Bordes redondeados */
+  box-shadow: 0px 4px 6px rgba(0, 0, 0, 0.1); /* Sombra ligera */
+  padding: 1.5rem; /* Espaciado interno */
+}
+
+.title {
+  font-size: 1.2rem; /* Tamaño del título */
+  font-weight: bold; /* Negrita */
+  margin-bottom: 1rem; /* Espaciado inferior */
+  color: #383e43; /* Texto oscuro */
+}
+
+.canvas {
+  width: 250px; /* Redimensiona el gráfico */
+  height: 150px; /* Redimensiona el gráfico */
+}

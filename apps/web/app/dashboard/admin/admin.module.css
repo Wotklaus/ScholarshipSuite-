@@ -1,0 +1,114 @@
+/* Fondo general */
+.container {
+  background-color: #f4f4f9; /* Fondo limpio y claro */
+  padding: 1rem; /* Espaciado interno */
+  box-sizing: border-box; /* Ajusta padding en proporciones */
+}
+
+/* Encabezado */
+.header {
+  margin-bottom: 1.5rem;
+}
+
+.headerTop {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.search {
+  width: 300px;
+  padding: 0.6rem;
+  font-size: 0.95rem;
+  border: 1px solid #ddd;
+  border-radius: 4px;
+}
+
+/* Tarjetas estadísticas */
+.statistics {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: 1.2rem; /* Espaciado entre tarjetas */
+  margin-bottom: 2rem;
+}
+
+.card {
+  background-color: #ffffff; /* Fondo blanco limpio */
+  border: 1px solid #dadce0; /* Bordes discretos */
+  border-radius: 8px;
+  padding: 1.2rem;
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.05); /* Sombra ligera */
+  text-align: center;
+  transition: transform 0.3s ease, box-shadow 0.3s ease;
+}
+
+.card:hover {
+  transform: scale(1.02); /* Efecto sobresaliente al hover */
+  box-shadow: 0 6px 12px rgba(0, 0, 0, 0.1);
+}
+
+.card h2 {
+  font-size: 1.5rem;
+  color: #383e43; /* Texto oscuro */
+  margin-bottom: 0.5rem;
+}
+
+.card p {
+  font-size: 1.1rem;
+  color: #6c757d; /* Texto gris suave */
+}
+
+.icon {
+  font-size: 2rem; /* Íconos más pequeños */
+  color: #007acc; /* Resaltar íconos con azul moderno */
+  margin-bottom: 0.5rem;
+}
+
+.card.approved .icon {
+  color: #28a745;
+}
+
+.card.rejected .icon {
+  color: #dc3545;
+}
+
+/* Contenedor de gráficas */
+.graphics {
+  display: grid;
+  grid-template-columns: 1fr 1fr; /* Dos gráficos alineados */
+  gap: 1.5rem; /* Espaciado entre gráficas */
+  margin-bottom: 2rem; /* Margen inferior */
+}
+
+/* Acciones rápidas */
+.actions {
+  margin-top: 2rem;
+}
+
+.actions h2 {
+  font-size: 1.5rem;
+  margin-bottom: 1rem;
+  font-weight: 600;
+}
+
+.actionGroup {
+  display: flex;
+  justify-content: space-evenly;
+}
+
+.actionButton {
+  padding: 0.8rem 1.5rem;
+  font-size: 1rem; /* Tamaño compacto */
+  background-color: #007bff; /* Azul profesional */
+  color: #ffffff;
+  border: none;
+  border-radius: 4px;
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+  cursor: pointer;
+  transition: background-color 0.3s ease-in-out, transform 0.3s ease;
+}
+
+.actionButton:hover {
+  background-color: #0056b3; /* Azul más oscuro */
+  transform: scale(1.02); /* Efecto sobresaliente */
+}

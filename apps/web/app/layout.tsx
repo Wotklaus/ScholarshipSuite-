@@ -1,17 +1,28 @@
+"use client";
+
+import { usePathname } from "next/navigation";
+import Sidebar from "./components/sidebar";
+import "./globals.css";
+
 export default function RootLayout({ children }: { children: React.ReactNode }) {
+  const pathname = usePathname();
+  const isDashboard = pathname.startsWith("/dashboard");
+
   return (
     <html lang="en">
-      <head>
-        <link rel="stylesheet" href="/globals.css" />
-      </head>
       <body>
-        <header style={{ padding: "1rem", backgroundColor: "#0070f3", color: "white" }}>
-          <h2>Gestión de Becas</h2>
-        </header>
-        <main style={{ padding: "1rem" }}>{children}</main>
-        <footer style={{ padding: "1rem", textAlign: "center", marginTop: "2rem", backgroundColor: "#333", color: "white" }}>
-          Sistema de Becas © 2026
-        </footer>
+        <div style={{ display: "flex", height: "100vh" }}>
+          {isDashboard && <Sidebar role={pathname.includes("admin") ? "admin" : "student"} />}
+          <div
+            style={{
+              flex: 1, // El contenido ocupa el espacio restante
+              overflowY: "auto", // Desplazable si es extenso
+              background: "#f4f4f9", // Fondo del contenido
+            }}
+          >
+            {children}
+          </div>
+        </div>
       </body>
     </html>
   );
