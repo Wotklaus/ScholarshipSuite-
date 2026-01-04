@@ -1,13 +1,13 @@
 body {
   margin: 0;
-  font-family: Arial, sans-serif;
-  background-color: #f2f2f2;
+  font-family: 'Poppins', Arial, sans-serif;
 }
 
-h1 {
-  font-size: 1.8rem;
+a {
+  text-decoration: none;
+  color: inherit;
 }
 
-button {
-  cursor: pointer;
+h1, h2, h3, p {
+  margin: 0; /* Evitar márgenes por defecto */
 }
