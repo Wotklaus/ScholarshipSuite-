@@ -1,9 +1,10 @@
-import { Controller, Post, Body, UnauthorizedException } from '@nestjs/common';
+import { Controller, Post, Body, UnauthorizedException, UseGuards } from '@nestjs/common';
 import { AuthService } from './auth.service';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
-import { User } from '../entities/user.entity'; // Entidad de usuarios
-import { Role } from '../entities/role.entity'; // Entidad de roles
+import { User } from '../entities/user.entity';
+import { Role } from '../entities/role.entity';
+import { ThrottlerGuard } from '@nestjs/throttler'; // Importar el guard para rate limiting
 
 @Controller('auth')
 export class AuthController {
@@ -16,6 +17,7 @@ export class AuthController {
   ) {}
 
   // Endpoint de login
+  @UseGuards(ThrottlerGuard) // Aplicamos Rate Limiting aquí
   @Post('login')
   async login(@Body() body: { email: string; password: string }) {
     const { email, password } = body;
