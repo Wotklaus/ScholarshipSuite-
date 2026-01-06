@@ -4,7 +4,7 @@ import Link from "next/link";
 import { useState } from "react";
 import styles from "./style/sidebar.module.css";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
-import { faUser, faUsers, faFileContract, faFileAlt, faFileCircleCheck, faFileExcel, faChartLine, faHome, faSignOutAlt } from "@fortawesome/free-solid-svg-icons";
+import { faUser, faUsers, faFileContract, faFileAlt, faFileCircleCheck, faFileExcel, faChartLine, faHome, faSignOutAlt, faMoneyCheckAlt, faPen } from "@fortawesome/free-solid-svg-icons";
 
 type SidebarProps = {
   role: "admin" | "student";
@@ -105,6 +105,48 @@ const Sidebar = ({ role }: SidebarProps) => {
                   </Link>
                   <Link className={styles.sidebarLink} href="/dashboard/student/contracts/status">
                     <FontAwesomeIcon icon={faFileExcel} /> Status
+                  </Link>
+                </div>
+              )}
+            </div>
+
+            {/* Bank Accounts */}
+            <div className={styles.sidebarHeading}>Bank Accounts</div>
+            <div className={styles.sidebarGroup}>
+              <button
+                className={styles.collapsible}
+                onClick={() => toggleSection("bankAccounts")}
+              >
+                <FontAwesomeIcon icon={faMoneyCheckAlt} /> Bank Accounts
+              </button>
+              {openSections["bankAccounts"] && (
+                <div className={styles.sidebarNested}>
+                  <Link className={styles.sidebarLink} href="/dashboard/student/bank/pichincha">
+                    Pichincha
+                  </Link>
+                  <Link className={styles.sidebarLink} href="/dashboard/student/bank/guayaquil">
+                    Guayaquil
+                  </Link>
+                  <Link className={styles.sidebarLink} href="/dashboard/student/bank/pacifico">
+                    Pacifico
+                  </Link>
+                </div>
+              )}
+            </div>
+
+            {/* Signatures */}
+            <div className={styles.sidebarHeading}>Signatures</div>
+            <div className={styles.sidebarGroup}>
+              <button
+                className={styles.collapsible}
+                onClick={() => toggleSection("signatures")}
+              >
+                <FontAwesomeIcon icon={faPen} /> Signatures
+              </button>
+              {openSections["signatures"] && (
+                <div className={styles.sidebarNested}>
+                  <Link className={styles.sidebarLink} href="/dashboard/student/signatures/signature1">
+                    Signature 1
                   </Link>
                 </div>
               )}

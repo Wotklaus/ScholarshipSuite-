@@ -4,7 +4,6 @@
   min-height: 100vh;
   background: #383e43;
   color: #ffffff;
-  
   left: 0;
   top: 0;
   display: flex;
@@ -19,9 +18,8 @@
   padding: 1.3rem 1.2rem;
   color: #ffffff;
   display: flex;
-  align-items:flex-start;
-  justify-content:center;
-  
+  align-items: flex-start;
+  justify-content: center;
 }
 
 /* Encabezados */
@@ -73,6 +71,20 @@
   margin-left: 1.5rem;
   border-left: 2px solid #2a3136;
   padding-left: 0.5rem;
+}
+
+/* Estilos específicos para submenús de Ctas Bancarias y Firmas */
+.sidebarNested a {
+  color: #d2d2d2;
+  font-size: 0.9rem;
+  padding: 0.5rem 0;
+  text-decoration: none;
+}
+
+.sidebarNested a:hover {
+  color: #ffffff;
+  background-color: #4e555c;
+  border-radius: 4px;
 }
 
 /* Footer fijo */
