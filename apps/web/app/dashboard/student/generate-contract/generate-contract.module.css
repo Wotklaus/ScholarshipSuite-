@@ -1,0 +1,72 @@
+/* Contenedor del componente */
+.container {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 2rem;
+  background-color: #f9f9f9; /* Fondo claro */
+  border-radius: 10px; /* Borde ligeramente redondeado */
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1); /* Sombras suaves */
+}
+
+/* Título */
+.title {
+  font-size: 2rem; /* Tamaño de fuente grande */
+  font-weight: bold;
+  margin-bottom: 1rem; /* Espaciado debajo */
+  color: #333; /* Color de texto */
+}
+
+/* Botón */
+.button {
+  background-color: #007bff; /* Azul llamativo */
+  color: white;
+  border: none;
+  padding: 0.8rem 1.2rem; /* Espaciado interno */
+  font-size: 1rem;
+  font-weight: bold;
+  border-radius: 5px; /* Bordes redondeados */
+  cursor: pointer;
+  transition: background-color 0.3s ease, transform 0.2s ease; /* Animación en hover */
+}
+
+.button:hover {
+  background-color: #0056b3; /* Azul más oscuro al pasar el mouse */
+  transform: scale(1.05); /* Tamaño ligeramente más grande */
+}
+
+.button:disabled {
+  background-color: #ccc; /* Gris para botones deshabilitados */
+  cursor: not-allowed;
+}
+
+/* Mensajes de éxito y error */
+.success {
+  margin-top: 1rem;
+  color: #28a745; /* Color verde */
+  font-weight: bold;
+}
+
+.error {
+  margin-top: 1rem;
+  color: #dc3545; /* Color rojo */
+  font-weight: bold;
+}
+
+/* Contenedor del PDF */
+.pdfContainer {
+  margin-top: 2rem; /* Espaciado superior */
+  width: 80%;
+  border: 2px solid #ddd; /* Borde gris claro */
+  border-radius: 10px; /* Bordes redondeados */
+  overflow: hidden; /* Cut off el contenido fuera del contenedor */
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1); /* Sombras suaves */
+}
+
+/* Iframe del PDF */
+.pdfContainer iframe {
+  width: 100%; /* Ocupar todo el ancho del contenedor */
+  height: 600px; /* Altura fija */
+  border: none; /* Quitar borde del iframe */
+}
