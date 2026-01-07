@@ -56,12 +56,10 @@
 
 /* Contenedor del PDF */
 .pdfContainer {
-  margin-top: 2rem; /* Espaciado superior */
-  width: 80%;
-  border: 2px solid #ddd; /* Borde gris claro */
-  border-radius: 10px; /* Bordes redondeados */
-  overflow: hidden; /* Cut off el contenido fuera del contenedor */
-  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1); /* Sombras suaves */
+  width: 80%;          /* Ajusta ancho para menos espacio horizontal */
+  margin: auto;        /* Centra el PDF vertical y horizontalmente */
+  overflow: hidden;    /* Se asegura de no agregar scroll innecesario */
+  height: auto;        /* Ajusta dinámicamente */
 }
 
 /* Iframe del PDF */
@@ -69,4 +67,14 @@
   width: 100%; /* Ocupar todo el ancho del contenedor */
   height: 600px; /* Altura fija */
   border: none; /* Quitar borde del iframe */
+}
+
+/* Estilos necesarios para la capa de texto */
+.react-pdf__Page__textContent {
+  display: none; /* Ocultar capa adicional de texto si no es necesario */
+}
+
+/* Estilos necesarios para la capa de anotaciones */
+.react-pdf__Page__annotationLayer {
+  display: none; /* Ocultar anotaciones innecesarias */
 }

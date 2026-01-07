@@ -1,26 +1,46 @@
-"use client";
+"use client"; // Marca el componente como Client Component
 
 import React, { useState } from "react";
-import styles from "./generate-contract.module.css"; // Estilos para el componente
+import { Document, Page, pdfjs } from "react-pdf";
+import styles from "./generate-contract.module.css"; // Estilos locales
 
-export default function GenerateContract() {
-  const [showPDF, setShowPDF] = useState(false); // Estado para mostrar el PDF
-  const [loading, setLoading] = useState(false); // Estado de carga
-  const [errorMessage, setErrorMessage] = useState(""); // Error al cargar
+pdfjs.GlobalWorkerOptions.workerSrc = '/pdf.worker.mjs';
+
+const GenerateContract: React.FC = () => {
+  const [showPDF, setShowPDF] = useState(false);
+  const [loading, setLoading] = useState(false);
+  const [errorMessage, setErrorMessage] = useState("");
+  const [numPages, setNumPages] = useState<number | null>(null);
+  const [templateUrl, setTemplateUrl] = useState<string | null>(null);
 
   const handleShowTemplate = async () => {
     setLoading(true);
     setErrorMessage("");
 
     try {
-      // Cambiamos la bandera para mostrar el PDF
+      const url = "http://localhost:3002/contracts/template";
+      setTemplateUrl(url);
       setShowPDF(true);
     } catch (error) {
+      console.error("Error al cargar la plantilla:", error);
       setErrorMessage("Error al cargar la plantilla. Por favor, inténtalo de nuevo.");
-      console.error("Detalles del error:", error);
     } finally {
       setLoading(false);
     }
+  };
+
+  const handleGenerateDynamicContract = async () => {
+    try {
+      const userId = "12345";
+      window.open(`http://localhost:3002/contracts/dynamic?userId=${userId}`, '_blank');
+    } catch (error) {
+      console.error("Error generando el contrato dinámico:", error);
+      setErrorMessage("Hubo un problema al generar el contrato dinámico. Inténtalo nuevamente.");
+    }
+  };
+
+  const onDocumentLoadSuccess = ({ numPages }: { numPages: number }) => {
+    setNumPages(numPages);
   };
 
   return (
@@ -37,17 +57,37 @@ export default function GenerateContract() {
 
       {errorMessage && <p className={styles.error}>{errorMessage}</p>}
 
-      {showPDF && (
+      {showPDF && templateUrl && (
         <div className={styles.pdfContainer}>
-          {/* Renderizar el PDF con un <iframe> */}
-          <iframe
-            src="http://localhost:3002/static/Template-Exc.pdf" // URL del microservicio
-            width="100%"
-            height="600px"
-            title="Plantilla de Contrato"
-          ></iframe>
+          <Document
+            file={templateUrl}
+            onLoadSuccess={onDocumentLoadSuccess}
+            loading={<p>Cargando el PDF...</p>}
+            error={<p>No se pudo cargar el PDF desde el servidor.</p>}
+          >
+            {Array.from(new Array(numPages || 0), (_el, index) => (
+              <Page
+                key={`page_${index + 1}`}
+                pageNumber={index + 1}
+                width={window.innerWidth * 0.62} /* Ajusta el ancho según la ventana */
+                renderTextLayer={false}       /* Desactiva la capa de texto */
+                renderAnnotationLayer={false} /* Desactiva la capa de anotaciones */
+              />
+            ))}
+          </Document>
         </div>
+      )}
+
+      {showPDF && (
+        <button
+          className={styles.button}
+          onClick={handleGenerateDynamicContract}
+        >
+          Generar Contrato Dinámico
+        </button>
       )}
     </div>
   );
-}
+};
+
+export default GenerateContract;

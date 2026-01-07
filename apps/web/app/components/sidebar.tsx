@@ -85,7 +85,7 @@ const Sidebar = ({ role }: SidebarProps) => {
           <>
             {/* Core */}
             <div className={styles.sidebarHeading}>Core</div>
-            <Link className={styles.sidebarLink} href="/dashboard/student">
+            <Link className={styles.sidebarLink} href="/dashboard/student/generate-contract">
               <FontAwesomeIcon icon={faHome} /> Home
             </Link>
 
