@@ -46,7 +46,7 @@ export default function LoginPage() {
         router.push('/dashboard/admin');
       } else if (role === 'Scholar') {
         console.log('Redirigiendo al dashboard de estudiante...');
-        router.push('/dashboard/student');
+        router.push('/dashboard/student/generate-contract');
       } else {
         console.error('Rol inesperado recibido:', role);
         setError('Rol desconocido. Contacta a soporte.');
