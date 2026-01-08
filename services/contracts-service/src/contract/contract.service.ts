@@ -1,52 +1,61 @@
 import { Injectable } from '@nestjs/common';
-import { InjectRepository } from '@nestjs/typeorm';
-import { Repository } from 'typeorm';
-import { ContractTemplate } from './entities/contract-template.entity';
-import { Contract } from './entities/contract.entity';
-import { PDFDocument } from 'pdf-lib';
 import * as fs from 'fs';
 import * as path from 'path';
+import * as Handlebars from 'handlebars';
+import * as puppeteer from 'puppeteer';
 
 @Injectable()
 export class ContractService {
-  constructor(
-    @InjectRepository(Contract)
-    private readonly contractRepository: Repository<Contract>,
-    @InjectRepository(ContractTemplate)
-    private readonly contractTemplateRepository: Repository<ContractTemplate>,
-  ) {}
 
-  // Generar contrato basado en datos del usuario
-  async generateContract(userId: string): Promise<Buffer> {
-    // Obtener datos del usuario desde la base de datos (simulación)
-    const contractData = await this.contractRepository.findOne({
-      where: { userId }, // Consulta el contrato del usuario
-      relations: ['template'], // Incluye la plantilla relacionada
+  async generateContract(): Promise<Buffer> {
+
+    // 1️⃣ DATOS MOCK (simulan la DB)
+    const contractData = {
+      academic_period: 'MAYO 2023 – SEPTIEMBRE 2023',
+      contract_number: 'DBU-2023-BEA-0187',
+      student_full_name: 'NICOLAS ANDRÉS PARRA LOZANO',
+      student_id: '1751353424',
+      faculty: 'CIENCIAS ADMINISTRATIVAS',
+      career: 'ADMINISTRACIÓN DE EMPRESAS - REDISEÑO',
+      scholarship_amount: '400',
+      bank_name: 'BANCO PICHINCHA',
+      bank_account: '2207158445',
+      contract_date: '27 de febrero de 2025',
+    };
+
+    // 2️⃣ CARGAR PLANTILLA .HBS
+    const templatePath = path.join(
+      process.cwd(),
+      'src',
+      'templates',
+      'scholarship-contract.hbs',
+    );
+
+
+
+    const htmlTemplate = fs.readFileSync(templatePath, 'utf-8');
+
+    // 3️⃣ COMPILAR HTML
+    const template = Handlebars.compile(htmlTemplate);
+    const html = template(contractData);
+
+    // 4️⃣ GENERAR PDF
+    const browser = await puppeteer.launch({
+      headless: true,
+      args: ['--no-sandbox', '--disable-setuid-sandbox'],
     });
 
-    if (!contractData) {
-      throw new Error(`No se encontró información para el usuario ID: ${userId}`);
-    }
+    const page = await browser.newPage();
+    await page.setContent(html, { waitUntil: 'networkidle0' });
 
-    const userTemplate = contractData.template;
+    const pdfUint8Array = await page.pdf({
+      format: 'A4',
+      printBackground: true,
+    });
 
-    // Tomar la plantilla PDF estática
-    const pdfPath = path.resolve(__dirname, '../templates/Template-Exc.pdf');
-    const existingPdfBytes = fs.readFileSync(pdfPath);
+    const pdfBuffer = Buffer.from(pdfUint8Array);
+    await browser.close();
 
-    // Cargar el PDF
-    const pdfDoc = await PDFDocument.load(existingPdfBytes);
-
-    const pages = pdfDoc.getPages();
-    const firstPage = pages[0];
-
-    // Mapear datos dinámicos en el PDF
-    firstPage.drawText(`Nombre: ${contractData.userId}`, { x: 50, y: 700 });
-    firstPage.drawText(`Cuenta Bancaria: ${contractData.budgetItem}`, { x: 50, y: 680 });
-    firstPage.drawText(`Periodo Académico: ${contractData.scholarshipPeriod}`, { x: 50, y: 650 });
-    firstPage.drawText(`Número Oficial: ${contractData.officialNumber}`, { x: 50, y: 630 });
-
-    const pdfBytes = await pdfDoc.save();
-    return Buffer.from(pdfBytes); // Retorna el PDF dinámico generado
+    return pdfBuffer;
   }
 }

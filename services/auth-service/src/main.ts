@@ -7,6 +7,7 @@ async function bootstrap() {
   // Habilitar CORS
   app.enableCors({
     origin: 'http://localhost:3001', // Permitir solicitudes desde el frontend
+    credentials: true, // Permitir el envío de cookies
   });
 
   await app.listen(3000);

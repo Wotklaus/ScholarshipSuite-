@@ -1,0 +1,116 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <title>Contrato de Beca</title>
+  <style>
+    body {
+      font-family: "Times New Roman", serif;
+      margin: 60px;
+      line-height: 1.5;
+      font-size: 12pt;
+    }
+    h1, h2 {
+      text-align: center;
+      font-weight: bold;
+    }
+    p {
+      text-align: justify;
+      margin-bottom: 12px;
+    }
+    .center {
+      text-align: center;
+    }
+    .signature {
+      margin-top: 60px;
+      display: flex;
+      justify-content: space-between;
+    }
+  </style>
+</head>
+
+<body>
+
+<h2>UNIVERSIDAD CENTRAL DEL ECUADOR</h2>
+<h2>DIRECCIÓN DE BIENESTAR UNIVERSITARIO</h2>
+
+<h1>CONTRATO DE BECA POR EXCELENCIA ACADÉMICA</h1>
+
+<p class="center">
+ESTUDIANTE REGULAR – PERIODO ACADÉMICO: {{academic_period}}
+</p>
+
+<p class="center">
+<strong>N° {{contract_number}}</strong>
+</p>
+
+<p>
+A la celebración del presente Contrato de Beca, comparecen por una parte el
+<strong>Dr. Silvio Toscano Vizcaíno, Ph.D</strong>, Vicerrector Administrativo y
+Financiero, en representación de la Universidad Central del Ecuador, a quien
+en adelante se denominará <strong>LA UNIVERSIDAD</strong>; y, por otra parte,
+el/la señor/a <strong>{{student_full_name}}</strong>, por sus propios derechos,
+a quien en adelante se denominará <strong>EL BECARIO</strong>.
+</p>
+
+<p>
+<strong>PRIMERA. - ANTECEDENTES.</strong> La Universidad Central del Ecuador,
+en cumplimiento de la Ley Orgánica de Educación Superior, ha implementado un
+programa de becas para estudiantes del tercer nivel, conforme a las
+resoluciones vigentes del Honorable Consejo Universitario.
+</p>
+
+<p>
+<strong>SEGUNDA. - OBJETO.</strong> LA UNIVERSIDAD otorga a favor del/la
+señor/a <strong>{{student_full_name}}</strong>, portador/a de la Cédula de
+Ciudadanía N° <strong>{{student_id}}</strong>, estudiante de la Facultad de
+<strong>{{faculty}}</strong>, carrera de <strong>{{career}}</strong>, el valor
+de <strong>{{scholarship_amount}}</strong> dólares de los Estados Unidos de
+América, correspondiente al periodo académico
+<strong>{{academic_period}}</strong>.
+</p>
+
+<p>
+La transferencia se realizará a la cuenta de ahorros
+<strong>{{bank_account}}</strong> del banco <strong>{{bank_name}}</strong>,
+perteneciente al becario.
+</p>
+
+<p>
+<strong>TERCERA. - INEXISTENCIA DE RELACIÓN LABORAL.</strong> No existe vínculo
+laboral alguno entre LA UNIVERSIDAD y EL BECARIO.
+</p>
+
+<p>
+<strong>CUARTA. - CONTROVERSIAS.</strong> Las partes buscarán una solución
+amigable conforme a la normativa vigente.
+</p>
+
+<p>
+<strong>QUINTA. - DECLARACIÓN.</strong> El becario declara que la información
+proporcionada es verídica y se somete a las disposiciones legales en caso de
+falsedad.
+</p>
+
+<p>
+<strong>SEXTA. - ACEPTACIÓN.</strong> Las partes aceptan íntegramente el
+contenido del presente contrato. Dado en la ciudad de Quito, DM,
+<strong>{{contract_date}}</strong>.
+</p>
+
+<div class="signature">
+  <div>
+    <p>Dr. Silvio Toscano Vizcaíno, Ph.D</p>
+    <p><strong>VICERRECTOR ADMINISTRATIVO Y FINANCIERO</strong></p>
+    <p>UNIVERSIDAD CENTRAL DEL ECUADOR</p>
+  </div>
+
+  <div>
+    <p>{{student_full_name}}</p>
+    <p><strong>BECARIO</strong></p>
+    <p>C.C. {{student_id}}</p>
+  </div>
+</div>
+
+</body>
+</html>

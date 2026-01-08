@@ -18,7 +18,7 @@
     "test:cov": "jest --coverage",
     "test:debug": "node --inspect-brk -r tsconfig-paths/register -r ts-node/register node_modules/.bin/jest --runInBand",
     "test:e2e": "jest --config ./test/jest-e2e.json",
-    "copy:templates": "cpy 'src/templates/*' 'dist/templates/'"
+    "copy:templates": "cpy \"src/templates/*.hbs\" \"dist/templates\" --parents"
   },
   "dependencies": {
     "@nestjs/common": "^11.1.11",
@@ -33,10 +33,12 @@
     "class-validator": "^0.14.3",
     "docxtemplater": "^3.67.6",
     "graphql-request": "^7.4.0",
+    "handlebars": "^4.7.8",
     "pdf-lib": "^1.17.1",
     "pdfkit": "^0.17.2",
     "pg": "^8.16.3",
     "pizzip": "^3.2.0",
+    "puppeteer": "^24.34.0",
     "reflect-metadata": "^0.2.2",
     "rxjs": "^7.8.1",
     "serve-static": "^2.2.1",

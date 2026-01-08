@@ -1,10 +1,10 @@
-"use client"; // Marca el componente como Client Component
+"use client";
 
 import React, { useState } from "react";
 import { Document, Page, pdfjs } from "react-pdf";
-import styles from "./generate-contract.module.css"; // Estilos locales
+import styles from "./generate-contract.module.css";
 
-pdfjs.GlobalWorkerOptions.workerSrc = '/pdf.worker.mjs';
+pdfjs.GlobalWorkerOptions.workerSrc = "/pdf.worker.mjs";
 
 const GenerateContract: React.FC = () => {
   const [showPDF, setShowPDF] = useState(false);
@@ -13,29 +13,43 @@ const GenerateContract: React.FC = () => {
   const [numPages, setNumPages] = useState<number | null>(null);
   const [templateUrl, setTemplateUrl] = useState<string | null>(null);
 
+  /**
+   * Muestra la plantilla del contrato (PDF estático)
+   */
   const handleShowTemplate = async () => {
     setLoading(true);
     setErrorMessage("");
 
     try {
+      // Endpoint que devuelve el PDF de plantilla
       const url = "http://localhost:3002/contracts/template";
       setTemplateUrl(url);
       setShowPDF(true);
     } catch (error) {
       console.error("Error al cargar la plantilla:", error);
-      setErrorMessage("Error al cargar la plantilla. Por favor, inténtalo de nuevo.");
+      setErrorMessage(
+        "Error al cargar la plantilla. Por favor, inténtalo de nuevo."
+      );
     } finally {
       setLoading(false);
     }
   };
 
-  const handleGenerateDynamicContract = async () => {
+  /**
+   * Genera el contrato dinámico
+   * El backend obtiene el userId DESDE EL JWT (cookie)
+   */
+  const handleGenerateDynamicContract = () => {
     try {
-      const userId = "12345";
-      window.open(`http://localhost:3002/contracts/dynamic?userId=${userId}`, '_blank');
+      window.open(
+        "http://localhost:3002/contracts/dynamic",
+        "_blank"
+      );
     } catch (error) {
       console.error("Error generando el contrato dinámico:", error);
-      setErrorMessage("Hubo un problema al generar el contrato dinámico. Inténtalo nuevamente.");
+      setErrorMessage(
+        "Hubo un problema al generar el contrato dinámico. Inténtalo nuevamente."
+      );
     }
   };
 
@@ -69,9 +83,9 @@ const GenerateContract: React.FC = () => {
               <Page
                 key={`page_${index + 1}`}
                 pageNumber={index + 1}
-                width={window.innerWidth * 0.62} /* Ajusta el ancho según la ventana */
-                renderTextLayer={false}       /* Desactiva la capa de texto */
-                renderAnnotationLayer={false} /* Desactiva la capa de anotaciones */
+                width={window.innerWidth * 0.62}
+                renderTextLayer={false}
+                renderAnnotationLayer={false}
               />
             ))}
           </Document>
