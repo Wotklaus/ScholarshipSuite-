@@ -19,9 +19,21 @@ export class ContractService {
       career: 'ADMINISTRACIÓN DE EMPRESAS - REDISEÑO',
       scholarship_amount: '400',
       bank_name: 'BANCO PICHINCHA',
-      bank_account: '2207158445',
+      bank_account: '2204676223',
       contract_date: '27 de febrero de 2025',
     };
+
+    // 1️⃣.1 CARGAR LOGO EN BASE64 (⬅️ SOLO SE AÑADE ESTO)
+    const logoPath = path.join(
+      process.cwd(),
+      'src',
+      'assets',
+      'logouce.png',
+    );
+
+    const logoBase64 = fs.readFileSync(logoPath, 'base64');
+    console.log('LOGO BASE64 LENGTH:', logoBase64.length);
+
 
     // 2️⃣ CARGAR PLANTILLA .HBS
     const templatePath = path.join(
@@ -31,13 +43,15 @@ export class ContractService {
       'scholarship-contract.hbs',
     );
 
-
-
     const htmlTemplate = fs.readFileSync(templatePath, 'utf-8');
 
     // 3️⃣ COMPILAR HTML
     const template = Handlebars.compile(htmlTemplate);
-    const html = template(contractData);
+
+    const html = template({
+      ...contractData,
+      logo: `data:image/png;base64,${logoBase64}`, // ⬅️ SE INYECTA AQUÍ
+    });
 
     // 4️⃣ GENERAR PDF
     const browser = await puppeteer.launch({

@@ -4,7 +4,7 @@ import Link from "next/link";
 import { useState } from "react";
 import styles from "./style/sidebar.module.css";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
-import { faUser, faUsers, faFileContract, faFileAlt, faFileCircleCheck, faFileExcel, faChartLine, faHome, faSignOutAlt, faMoneyCheckAlt, faPen } from "@fortawesome/free-solid-svg-icons";
+import { faUser, faUsers, faFileContract, faFileAlt, faFileCircleCheck, faQuestionCircle, faFileExcel, faChartLine, faHome, faSignOutAlt, faMoneyCheckAlt, faPen } from "@fortawesome/free-solid-svg-icons";
 
 type SidebarProps = {
   role: "admin" | "student";
@@ -151,6 +151,25 @@ const Sidebar = ({ role }: SidebarProps) => {
                 </div>
               )}
             </div>
+
+            {/* Help */}
+            <div className={styles.sidebarHeading}>INFORMATION</div>
+            <div className={styles.sidebarGroup}>
+              <button
+                className={styles.collapsible}
+                onClick={() => toggleSection("help")}
+              >
+                <FontAwesomeIcon icon={faQuestionCircle} /> Help
+              </button>
+              {openSections["help"] && (
+                <div className={styles.sidebarNested}>
+                  <Link className={styles.sidebarLink} href="/dashboard/student/signatures/signature1">
+                    FaQ
+                  </Link>
+                </div>
+              )}
+            </div>
+
           </>
         )}
       </div>
