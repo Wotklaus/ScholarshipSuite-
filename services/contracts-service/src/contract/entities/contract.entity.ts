@@ -1,29 +1,40 @@
-import { Entity, PrimaryGeneratedColumn, Column, ManyToOne } from 'typeorm';
-import { ContractTemplate } from './contract-template.entity';
+import { Entity, PrimaryGeneratedColumn, Column } from 'typeorm';
 
-@Entity('contracts') // Mapeamos la tabla `contracts`
+@Entity('contracts')
 export class Contract {
-  @PrimaryGeneratedColumn('uuid') // ID único del contrato
+  @PrimaryGeneratedColumn('uuid')
   id: string;
 
-  @Column('uuid') // Definimos `userId` como un campo UUID
-  userId: string;  // Referencia al ID del usuario, sin usar relación directa
+  @Column({ name: 'user_id', type: 'uuid' })
+  userId: string;
 
-  @ManyToOne(() => ContractTemplate, { eager: true }) // Relación con la plantilla del contrato
-  template: ContractTemplate;
+  @Column({ name: 'template_id', type: 'uuid' })
+  templateId: string;
 
-  @Column('date') // Periodo de la beca
-  scholarshipPeriod: Date;
+  @Column({ name: 'academic_period_start', type: 'date' })
+  academicPeriodStart: Date;
 
-  @Column('varchar') // Número oficial
+  @Column({ name: 'academic_period_end', type: 'date' })
+  academicPeriodEnd: Date;
+
+  @Column({ name: 'official_number', type: 'varchar' })
   officialNumber: string;
 
-  @Column('varchar') // Detalle del presupuesto
+  @Column({ name: 'scholarship_amount', type: 'numeric' })
+  scholarshipAmount: string; // TypeORM suele devolver numeric como string
+
+  @Column({ name: 'budget_item', type: 'varchar' })
   budgetItem: string;
 
-  @Column('varchar', { default: 'pending' }) // Estado del contrato
+  @Column({ type: 'varchar', default: 'pending' })
   status: string;
 
-  @Column('bytea') // Archivo PDF almacenado
-  file: Buffer;
+  @Column({ name: 'blockchain_hash', type: 'varchar' })
+  blockchainHash: string;
+
+  @Column({ type: 'bytea', nullable: true })
+  file: Buffer | null;
+
+  @Column({ name: 'created_at', type: 'timestamp' })
+  createdAt: Date;
 }

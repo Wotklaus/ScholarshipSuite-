@@ -7,7 +7,11 @@ import styles from "./contract-final.module.css";
 
 pdfjs.GlobalWorkerOptions.workerSrc = "/pdf.worker.mjs";
 
-const DYNAMIC_URL = "http://localhost:3002/contracts/dynamic";
+const DYNAMIC_URL = "/api/contracts/dynamic";
+
+
+
+
 
 export default function ContractFinalPage() {
   const router = useRouter();
@@ -149,6 +153,8 @@ export default function ContractFinalPage() {
               setErrorMessage("No se pudo cargar el contrato dinámico.");
             }}
           >
+
+
             {Array.from(new Array(numPages || 0), (_el, index) => (
               <div key={`pagewrap_${index + 1}`} className={styles.pageRow}>
                 <Page

@@ -1,15 +1,13 @@
-import { Entity, PrimaryGeneratedColumn, Column, ManyToOne } from 'typeorm';
-import { ScholarshipType } from './scholarship-type.entity';
+import { Entity, PrimaryGeneratedColumn, Column } from 'typeorm';
 
-@Entity('contract_templates') // Nombre de la tabla en PostgreSQL
+@Entity('contract_templates')
 export class ContractTemplate {
-  @PrimaryGeneratedColumn('uuid') // ID único de la plantilla
+  @PrimaryGeneratedColumn('uuid')
   id: string;
 
-  // Relación con la tabla "scholarship_types"
-  @ManyToOne(() => ScholarshipType, { eager: true })
-  scholarship_type: ScholarshipType;
+  @Column({ name: 'scholarship_type_id', type: 'uuid' })
+  scholarshipTypeId: string;
 
-  @Column('jsonb')
-  structure: any; // Estructura en formato JSON para la plantilla
+  @Column({ name: 'structure', type: 'jsonb' })
+  structure: any;
 }

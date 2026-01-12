@@ -14,7 +14,7 @@ import { APP_GUARD } from '@nestjs/core';
       password: '123',
       database: 'becas',
       autoLoadEntities: true,
-      synchronize: true,
+      synchronize: false,
     }),
     AuthModule,
     ThrottlerModule.forRoot({

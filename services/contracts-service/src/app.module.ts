@@ -17,8 +17,8 @@ import { ContractModule } from './contract/contract.module';
       username: process.env.DB_USER,
       password: process.env.DB_PASS,
       database: process.env.DB_NAME,
-      entities: [__dirname + '/**/*.entity{.ts,.js}'], // Registra las entidades
-      synchronize: true, // Cambiar a false en producción para evitar modificar automáticamente las tablas
+      entities: [__dirname + '/contract/**/*.entity{.ts,.js}'],
+      synchronize: false, // Cambiar a false en producción para evitar modificar automáticamente las tablas
     }),
     ServeStaticModule.forRoot({
       rootPath: join(__dirname, '../src/templates'), // Define la carpeta de plantillas como estática
