@@ -1,11 +1,16 @@
 "use client";
 
-import React, { useEffect, useRef, useState } from "react";
+import React, { useEffect, useMemo, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
-import { Document, Page, pdfjs } from "react-pdf";
+import dynamic from "next/dynamic";
 import styles from "./generate-contract.module.css";
 
-pdfjs.GlobalWorkerOptions.workerSrc = "/pdf.worker.mjs";
+const Document = dynamic(() => import("react-pdf").then((m) => m.Document), {
+  ssr: false,
+});
+const Page = dynamic(() => import("react-pdf").then((m) => m.Page), {
+  ssr: false,
+});
 
 const TEMPLATE_URL = "http://localhost:3002/static/Template-Exc.pdf";
 
@@ -16,94 +21,62 @@ type Hint = {
 };
 
 const HINTS: Hint[] = [
-  {
-    id: "periodo",
-    title: "Periodo académico",
-    text: "Se reemplazará por tu periodo académico real según el sistema (ej: MAYO 2023 – SEPTIEMBRE 2023).",
-  },
-  {
-    id: "numero",
-    title: "Número de oficio",
-    text: "Se reemplazará por el número oficial del contrato asignado por Bienestar Universitario.",
-  },
-  {
-    id: "nombre",
-    title: "Nombre del estudiante",
-    text: "Se reemplazará por tu nombre completo tal como consta en tu registro institucional.",
-  },
-  {
-    id: "id",
-    title: "Identificación",
-    text: "Se reemplazará por tu cédula registrada en el sistema.",
-  },
-  {
-    id: "facultad",
-    title: "Facultad y carrera",
-    text: "Se reemplazará por tu facultad y carrera oficiales registradas.",
-  },
-  {
-    id: "banco",
-    title: "Banco",
-    text: "Se reemplazará por el banco registrado en el sistema (ej: BANCO PICHINCHA).",
-  },
-  {
-    id: "tipoCuenta",
-    title: "Tipo de cuenta",
-    text: "Se reemplazará por tu tipo de cuenta registrada (ej: AHORROS).",
-  },
-  {
-    id: "cuenta",
-    title: "Número de cuenta",
-    text: "Se reemplazará por tu número de cuenta registrado.",
-  },
-  {
-    id: "titularFirma",
-    title: "Titular / Firma",
-    text: "Se reemplazará por el titular de la cuenta (quien firma como becario/a).",
-  },
+  { id: "periodo", title: "Periodo académico", text: "Se reemplazará por tu periodo académico real según el sistema (ej: MAYO 2023 – SEPTIEMBRE 2023)." },
+  { id: "numero", title: "Número de oficio", text: "Se reemplazará por el número oficial del contrato asignado por Bienestar Universitario." },
+  { id: "nombre", title: "Nombre del estudiante", text: "Se reemplazará por tu nombre completo tal como consta en tu registro institucional." },
+  { id: "id", title: "Identificación", text: "Se reemplazará por tu cédula registrada en el sistema." },
+  { id: "facultad", title: "Facultad y carrera", text: "Se reemplazará por tu facultad y carrera oficiales registradas." },
+  { id: "banco", title: "Banco", text: "Se reemplazará por el banco registrado en el sistema (ej: BANCO PICHINCHA)." },
+  { id: "tipoCuenta", title: "Tipo de cuenta", text: "Se reemplazará por tu tipo de cuenta registrada (ej: AHORROS)." },
+  { id: "cuenta", title: "Número de cuenta", text: "Se reemplazará por tu número de cuenta registrado." },
+  { id: "titularFirma", title: "Titular / Firma", text: "Se reemplazará por el titular de la cuenta (quien firma como becario/a)." },
 ];
 
 export default function GenerateContract() {
   const router = useRouter();
 
+  // worker solo cliente
+  useEffect(() => {
+    (async () => {
+      const mod = await import("react-pdf");
+      mod.pdfjs.GlobalWorkerOptions.workerSrc = "/pdf.worker.mjs";
+    })();
+  }, []);
+
   const [step, setStep] = useState<1 | 2>(1);
   const [showPDF, setShowPDF] = useState(false);
   const [templateUrl, setTemplateUrl] = useState<string | null>(null);
-
   const [numPages, setNumPages] = useState<number>(0);
   const [pageNumber, setPageNumber] = useState<number>(1);
 
   const [loading, setLoading] = useState(false);
   const [errorMessage, setErrorMessage] = useState("");
 
-  // ✅ Panel desplegable (hover)
   const [expandedId, setExpandedId] = useState<string | null>(null);
 
-  // ✅ MEDICIÓN REAL DEL CONTENEDOR DEL PDF (para que NO se salga)
+  // ✅ medir ancho real del contenedor del PDF
   const pdfWrapRef = useRef<HTMLDivElement | null>(null);
-  const [pdfWidth, setPdfWidth] = useState<number>(820);
+  const [pdfWrapWidth, setPdfWrapWidth] = useState<number>(900);
 
   useEffect(() => {
-    if (!showPDF) return;
     const el = pdfWrapRef.current;
     if (!el) return;
 
-    const compute = () => {
-      // margen de seguridad para padding y que no quede pegado a los bordes
-      const SAFE = 24;
-      const w = Math.max(320, el.clientWidth - SAFE);
-      setPdfWidth(w);
+    const update = () => {
+      setPdfWrapWidth(Math.max(320, el.clientWidth - 24));
     };
 
-    compute();
+    update();
 
-    const ro = new ResizeObserver(() => compute());
+    const ro = new ResizeObserver(update);
     ro.observe(el);
 
     return () => ro.disconnect();
-  }, [showPDF]);
+  }, []);
 
-  const pageWidth = pdfWidth;
+  const pageWidth = useMemo(() => {
+    return Math.min(860, pdfWrapWidth);
+  }, [pdfWrapWidth]);
 
   const handleContinue = async () => {
     setLoading(true);
@@ -132,7 +105,6 @@ export default function GenerateContract() {
 
   return (
     <div className={styles.container}>
-      {/* CARD BIENVENIDA */}
       <div className={styles.welcomeCard}>
         <div className={styles.welcomeHeader}>
           <div className={styles.welcomeLeft}>
@@ -173,7 +145,6 @@ export default function GenerateContract() {
           </div>
         </div>
 
-        {/* Importante */}
         <div className={styles.alertBox}>
           <div className={styles.alertIcon}>!</div>
           <div className={styles.alertBody}>
@@ -194,18 +165,15 @@ export default function GenerateContract() {
         {errorMessage && <p className={styles.error}>{errorMessage}</p>}
       </div>
 
-      {/* PLANTILLA */}
       {showPDF && templateUrl && (
         <>
           <div className={styles.templateSection}>
-            {/* PANEL IZQUIERDO: DESPLEGABLE */}
             <div className={styles.hintsPanel}>
               <h3 className={styles.hintsTitle}>Campos que se reemplazarán</h3>
 
               <div className={styles.hintsList}>
                 {HINTS.map((h) => {
                   const open = expandedId === h.id;
-
                   return (
                     <div
                       key={h.id}
@@ -228,13 +196,8 @@ export default function GenerateContract() {
                   );
                 })}
               </div>
-
-              <p className={styles.hintsFooter}>
-                Revisa la plantilla a la derecha. Luego presiona <b>Comenzar</b>.
-              </p>
             </div>
 
-            {/* PDF: NO se sale porque medimos el ancho real */}
             <div className={styles.pdfWrap} ref={pdfWrapRef}>
               <div className={styles.pdfPage}>
                 <Document
@@ -243,12 +206,7 @@ export default function GenerateContract() {
                   loading={<p className={styles.pdfLoading}>Cargando el PDF...</p>}
                   error={<p className={styles.pdfError}>No se pudo cargar el PDF desde el servidor.</p>}
                 >
-                  <Page
-                    pageNumber={pageNumber}
-                    width={pageWidth}
-                    renderTextLayer={false}
-                    renderAnnotationLayer={false}
-                  />
+                  <Page pageNumber={pageNumber} width={pageWidth} renderTextLayer={false} renderAnnotationLayer={false} />
                 </Document>
               </div>
             </div>

@@ -1,38 +1,42 @@
-import { Controller, Get, Res } from '@nestjs/common';
-import type { Response } from 'express';
+import {
+  Controller,
+  Get,
+  Req,
+  Res,
+  UnauthorizedException,
+} from '@nestjs/common';
+import type { Request, Response } from 'express';
 import { ContractService } from './contract.service';
-import * as path from 'path';
 
 @Controller('contracts')
 export class ContractController {
-  constructor(private readonly contractService: ContractService) { }
+  constructor(private readonly contractService: ContractService) {}
 
   @Get('dynamic')
-  async generateContract(@Res() res: Response) {
-    const pdf = await this.contractService.generateContract();
+  async dynamic(@Req() req: Request, @Res() res: Response) {
+    // ✅ DEBUG (para ver si llegan cookies)
+    console.log('[contracts/dynamic] raw cookie header:', req.headers.cookie);
+    console.log('[contracts/dynamic] parsed cookies:', req.cookies);
 
-    res.set({
-      'Content-Type': 'application/pdf',
-      'Content-Disposition': 'inline; filename=contrato-beca.pdf',
-    });
+    // ✅ 1) sacar el token desde cookie (pon aquí TODOS los nombres posibles)
+    const token =
+      req.cookies?.access_token ||
+      req.cookies?.token ||
+      req.cookies?.jwt ||
+      req.cookies?.Authentication; // <- común en auth apps
 
-    res.send(pdf);
-  }
+    if (!token) {
+      throw new UnauthorizedException('Missing auth cookie token');
+    }
 
-  @Get('template')
-  getTemplate(@Res() res: Response) {
-    const filePath = path.join(
-      process.cwd(),
-      'src',
-      'templates',
-      'Template-Exc.pdf',
+    // ✅ 2) generar pdf usando token
+    const pdfBuffer = await this.contractService.generateContractFromToken(
+      token,
     );
 
-    res.set({
-      'Content-Type': 'application/pdf',
-      'Content-Disposition': 'inline; filename=Template-Exc.pdf',
-    });
-
-    return res.sendFile(filePath);
+    // ✅ 3) responder inline PDF
+    res.setHeader('Content-Type', 'application/pdf');
+    res.setHeader('Content-Disposition', 'inline; filename="contract.pdf"');
+    return res.send(pdfBuffer);
   }
 }

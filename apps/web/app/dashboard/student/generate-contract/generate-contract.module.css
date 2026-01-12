@@ -14,8 +14,6 @@
   border-radius: 6px;
   padding: 16px;
   box-shadow: 0 10px 30px rgba(15, 23, 42, 0.06);
-
-  /* ✅ ocupa casi todo el ancho útil */
   width: 98%;
 }
 
@@ -33,8 +31,7 @@
 }
 
 /* =========================
-   LOGO UCE (opcional)
-   - si no existe /uce-logo.png se oculta en TSX
+   LOGO
    ========================= */
 .uceLogoWrap {
   display: flex;
@@ -49,7 +46,7 @@
 }
 
 .welcomeTitle {
-  margin: 10px 0 10px 0;
+  margin: 10px 0;
   font-size: 30px;
   font-weight: 900;
 }
@@ -84,10 +81,7 @@
   width: 18px;
   height: 18px;
   border-radius: 999px;
-
-  /* ✅ color check (puedes cambiarlo) */
   background: #1f77b1;
-
   color: #fff;
   display: grid;
   place-items: center;
@@ -96,7 +90,7 @@
 }
 
 /* =========================
-   ALERTA IMPORTANTE (naranja)
+   ALERTA IMPORTANTE
    ========================= */
 .alertBox {
   margin-top: 12px;
@@ -105,7 +99,7 @@
   border-radius: 12px;
   border: 1px solid #fdba74;
   background: #fff3e6;
-  padding: 12px 12px;
+  padding: 12px;
 }
 
 .alertIcon {
@@ -176,14 +170,15 @@
 }
 
 /* =========================
-   SECCIÓN: PANEL + PDF
+   PANEL + PDF (CLAVE)
    ========================= */
 .templateSection {
   margin-top: 20px;
   display: grid;
 
-  /* ✅ CLAVE: permitir que el 1fr se encoja sin overflow */
-  grid-template-columns: 350px minmax(0, 1fr);
+  /* ✅ ancho controlado y centrado */
+  grid-template-columns: 350px minmax(0, 980px);
+  justify-content: center;
 
   gap: 20px;
   align-items: start;
@@ -191,7 +186,7 @@
 }
 
 /* =========================
-   PANEL IZQUIERDO (mismo estilo naranja)
+   PANEL IZQUIERDO
    ========================= */
 .hintsPanel {
   background: #fff3e6;
@@ -214,25 +209,19 @@
 }
 
 .hintsFooter {
-  margin: 12px 0 0 0;
+  margin-top: 12px;
   font-size: 12px;
   opacity: 0.88;
 }
 
 /* =========================
-   ITEM DESPLEGABLE (BONITO)
+   ITEMS DESPLEGABLES
    ========================= */
 .hintItem {
   background: rgba(255, 255, 255, 0.75);
   border: 1px solid rgba(251, 146, 60, 0.35);
   border-radius: 12px;
-  padding: 10px 10px;
-  transition: background 160ms ease, border-color 160ms ease;
-}
-
-.hintItem:hover {
-  background: rgba(255, 255, 255, 0.95);
-  border-color: rgba(251, 146, 60, 0.55);
+  padding: 10px;
 }
 
 .hintTopRow {
@@ -264,7 +253,6 @@
   opacity: 0.75;
 }
 
-/* Cuerpo desplegable */
 .hintBody {
   max-height: 0;
   overflow: hidden;
@@ -272,7 +260,7 @@
 }
 
 .hintItemOpen .hintBody {
-  max-height: 180px; /* ✅ ajusta si quieres más alto */
+  max-height: 180px;
 }
 
 .hintBodyInner {
@@ -291,24 +279,26 @@
   border-radius: 6px;
   box-shadow: 0 10px 30px rgba(15, 23, 42, 0.06);
 
-  /* ✅ CLAVE para grid: permite encoger y evita overflow */
   min-width: 0;
-
-  /* ✅ padding para que se vea más limpio */
   padding: 12px;
-
-  /* ✅ NO scroll interno (como querías) */
   overflow: hidden;
 }
 
-/* Donde se centra el PDF */
 .pdfPage {
   display: grid;
   place-items: center;
-  padding-top: 1px;
 }
 
-/* Mensajes */
+/* ✅ EL PDF OCUPA TODO EL ANCHO */
+.pdfPage canvas {
+  width: 100% !important;
+  height: auto !important;
+  display: block;
+}
+
+/* =========================
+   MENSAJES
+   ========================= */
 .pdfLoading {
   font-size: 10px;
   opacity: 0.75;
@@ -321,7 +311,7 @@
 }
 
 /* =========================
-   BOTÓN FINAL
+   ACCIONES FINALES
    ========================= */
 .bottomActions {
   margin-top: 18px;

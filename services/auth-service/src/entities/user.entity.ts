@@ -1,21 +1,31 @@
 import { Entity, PrimaryGeneratedColumn, Column, ManyToOne, JoinColumn } from 'typeorm';
 import { Role } from './role.entity';
 
-@Entity('users') // Representa la tabla `users`
+@Entity('users')
 export class User {
   @PrimaryGeneratedColumn('uuid')
   id: string;
 
-  @Column({ unique: true })
+  @Column({ name: 'identification', type: 'varchar' })
+  identification: string;
+
+  @Column({ name: 'first_name', type: 'varchar' })
+  firstName: string;
+
+  @Column({ name: 'last_name', type: 'varchar' })
+  lastName: string;
+
+  @Column({ name: 'email', type: 'varchar' })
   email: string;
 
-  @Column()
+  @Column({ name: 'password', type: 'varchar' })
   password: string;
 
-  @ManyToOne(() => Role)
-  @JoinColumn({ name: 'role_id' }) // Relación con la tabla `roles`
-  role: Role;
-
-  @Column({ default: true })
+  // ✅ ESTA ES LA CLAVE DEL ERROR
+  @Column({ name: 'is_active', type: 'boolean', default: true })
   isActive: boolean;
+
+  @ManyToOne(() => Role)
+  @JoinColumn({ name: 'role_id' })
+  role: Role;
 }
