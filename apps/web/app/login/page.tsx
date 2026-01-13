@@ -18,7 +18,7 @@ export default function LoginPage() {
     try {
       const response = await fetch("http://localhost:3000/auth/login", {
         method: "POST",
-        credentials: "include", // 🔑 MUY IMPORTANTE
+        credentials: "include", // 🔑
         headers: {
           "Content-Type": "application/json",
         },
@@ -26,7 +26,7 @@ export default function LoginPage() {
       });
 
       if (!response.ok) {
-        setError("Credenciales incorrectas. Intenta nuevamente.");
+        setError("Incorrect credentials. Please try again.");
         return;
       }
 
@@ -40,11 +40,11 @@ export default function LoginPage() {
       } else if (role === "Scholar") {
         router.push("/dashboard/student/generate-contract");
       } else {
-        setError("Rol desconocido. Contacta a soporte.");
+        setError("Unknown role. Contact support.");
       }
     } catch (err) {
-      console.error("Error en login:", err);
-      setError("Error de conexión. Intenta más tarde.");
+      console.error("Login error:", err);
+      setError("Connection error. Please try later.");
     }
   };
 

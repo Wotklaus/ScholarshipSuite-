@@ -25,14 +25,12 @@ const Sidebar = ({ role }: SidebarProps) => {
       <div className={styles.sidebarContent}>
         {role === "admin" && (
           <>
-            {/* Core */}
             <div className={styles.sidebarHeading}>Core</div>
             <Link className={styles.sidebarLink} href="/dashboard/admin">
               <FontAwesomeIcon icon={faChartLine} /> Admin Dashboard
             </Link>
 
             {/* Management */}
-            <div className={styles.sidebarHeading}>Management</div>
             <div className={styles.sidebarGroup}>
               <button
                 className={styles.collapsible}
@@ -51,6 +49,7 @@ const Sidebar = ({ role }: SidebarProps) => {
                 </div>
               )}
             </div>
+
             <div className={styles.sidebarGroup}>
               <button
                 className={styles.collapsible}
@@ -73,8 +72,6 @@ const Sidebar = ({ role }: SidebarProps) => {
               )}
             </div>
 
-            {/* Reports */}
-            <div className={styles.sidebarHeading}>Reports</div>
             <Link className={styles.sidebarLink} href="/dashboard/admin/reports">
               <FontAwesomeIcon icon={faChartLine} /> Reports
             </Link>
@@ -83,14 +80,13 @@ const Sidebar = ({ role }: SidebarProps) => {
 
         {role === "student" && (
           <>
-            {/* Core */}
             <div className={styles.sidebarHeading}>Core</div>
             <Link className={styles.sidebarLink} href="/dashboard/student/generate-contract">
               <FontAwesomeIcon icon={faHome} /> Home
             </Link>
 
-            {/* My Contracts */}
-            <div className={styles.sidebarHeading}>My Contracts</div>
+            {/* Access */}
+            <div className={styles.sidebarHeading}>Access</div>
             <div className={styles.sidebarGroup}>
               <button
                 className={styles.collapsible}
@@ -110,8 +106,6 @@ const Sidebar = ({ role }: SidebarProps) => {
               )}
             </div>
 
-            {/* Bank Accounts */}
-            <div className={styles.sidebarHeading}>Bank Accounts</div>
             <div className={styles.sidebarGroup}>
               <button
                 className={styles.collapsible}
@@ -134,8 +128,6 @@ const Sidebar = ({ role }: SidebarProps) => {
               )}
             </div>
 
-            {/* Signatures */}
-            <div className={styles.sidebarHeading}>Signatures</div>
             <div className={styles.sidebarGroup}>
               <button
                 className={styles.collapsible}
@@ -152,8 +144,6 @@ const Sidebar = ({ role }: SidebarProps) => {
               )}
             </div>
 
-            {/* Help */}
-            <div className={styles.sidebarHeading}>INFORMATION</div>
             <div className={styles.sidebarGroup}>
               <button
                 className={styles.collapsible}
@@ -169,7 +159,6 @@ const Sidebar = ({ role }: SidebarProps) => {
                 </div>
               )}
             </div>
-
           </>
         )}
       </div>

@@ -2,6 +2,7 @@ import {
   Injectable,
   UnauthorizedException,
   NotFoundException,
+  BadRequestException,
 } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
@@ -44,17 +45,29 @@ export class ContractService {
     private readonly bankRepo: Repository<Bank>,
 
     private readonly jwtService: JwtService,
-  ) { }
+  ) {}
 
   // =========================
   // Helpers
   // =========================
 
+  private getUserIdFromToken(token: string): string {
+    let payload: any;
+    try {
+      payload = this.jwtService.verify(token);
+    } catch {
+      throw new UnauthorizedException('Invalid token');
+    }
+
+    const userId = payload?.sub || payload?.id || payload?.userId;
+    if (!userId) throw new UnauthorizedException('Token without user id');
+    return userId;
+  }
+
   private toDate(value: any): Date {
     if (!value) return new Date(NaN);
     if (value instanceof Date) return value;
-    const d = new Date(value);
-    return d;
+    return new Date(value);
   }
 
   private monthUpperES(d: Date): string {
@@ -80,7 +93,9 @@ export class ContractService {
     const s = this.toDate(start);
     const e = this.toDate(end);
     if (isNaN(s.getTime()) || isNaN(e.getTime())) return 'PENDIENTE_DB';
-    return `${this.monthUpperES(s)} ${s.getFullYear()} – ${this.monthUpperES(e)} ${e.getFullYear()}`;
+    return `${this.monthUpperES(s)} ${s.getFullYear()} – ${this.monthUpperES(
+      e,
+    )} ${e.getFullYear()}`;
   }
 
   private formatContractDate(createdAt: any): string {
@@ -99,24 +114,147 @@ export class ContractService {
     return s.length ? s : fallback;
   }
 
+  private normalizeUpper(value: any): string {
+    return String(value ?? '').trim().toUpperCase();
+  }
+
+  private ensureDir(dir: string) {
+    if (!fs.existsSync(dir)) fs.mkdirSync(dir, { recursive: true });
+  }
+
+  private async saveCertificateToDisk(userId: string, file: any) {
+    if (!file?.buffer) return null;
+
+    const uploadsRoot = path.join(
+      process.cwd(),
+      'uploads',
+      'bank-certificates',
+      userId,
+    );
+    this.ensureDir(uploadsRoot);
+
+    const safeOriginal = String(file.originalname ?? 'certificate.pdf').replace(
+      /[^\w.\- ]+/g,
+      '_',
+    );
+    const filename = `${Date.now()}_${safeOriginal}`;
+    const fullPath = path.join(uploadsRoot, filename);
+
+    fs.writeFileSync(fullPath, file.buffer);
+
+    return {
+      path: fullPath,
+      filename,
+      mimeType: file.mimetype ?? 'application/octet-stream',
+      size: file.size ?? file.buffer?.length ?? 0,
+    };
+  }
+
   // =========================
-  // Public API
+  // ✅ Guardar/Actualizar cuenta bancaria + guardar PDF
+  // =========================
+  async upsertBankAccountFromToken(token: string, body: any, file?: any) {
+    if (!body) {
+      throw new BadRequestException(
+        'Body vacío. Revisa que el endpoint use FileInterceptor("file").',
+      );
+    }
+
+    const userId = this.getUserIdFromToken(token);
+
+    const user = await this.userRepo.findOne({ where: { id: userId } as any });
+    if (!user) throw new NotFoundException('User not found');
+
+    const expectedIdentification = String(
+      (user as any).identification ?? '',
+    ).trim();
+    const certIdentification = String(body.identification ?? '').trim();
+
+    if (
+      certIdentification &&
+      expectedIdentification &&
+      certIdentification !== expectedIdentification
+    ) {
+      throw new BadRequestException(
+        'La cédula del certificado no coincide con tu usuario.',
+      );
+    }
+
+    const bankName = this.normalizeUpper(body.bankName);
+    const accountType = this.normalizeUpper(body.accountType);
+    const accountNumber = String(body.accountNumber ?? '').trim();
+
+    const defaultHolder = `${this.safe((user as any).firstName)} ${this.safe(
+      (user as any).lastName,
+    )}`.trim();
+    const holderName = String(body.holderName ?? defaultHolder).trim();
+
+    if (!bankName || !accountType || !accountNumber) {
+      throw new BadRequestException(
+        'bankName, accountType y accountNumber son obligatorios',
+      );
+    }
+
+    // ✅ 1) Bank (crear si no existe) — SIN "as any" para que NO tome overload de array
+    let bank = await this.bankRepo.findOne({
+      where: { name: bankName } as any,
+    });
+
+    if (!bank) {
+      const newBank = this.bankRepo.create({ name: bankName });
+      bank = await this.bankRepo.save(newBank);
+    }
+
+    // ✅ 2) BankAccount (crear o actualizar) — SIN "as any" para que NO tome overload de array
+    let acct = await this.bankAccountRepo.findOne({
+      where: { userId } as any,
+    });
+
+    if (!acct) {
+      acct = this.bankAccountRepo.create({
+        userId,
+        bankId: bank.id,
+        accountType,
+        accountNumber,
+        holderName,
+      });
+    } else {
+      acct.bankId = bank.id;
+      acct.accountType = accountType;
+      acct.accountNumber = accountNumber;
+      acct.holderName = holderName;
+    }
+
+    const savedAccount = await this.bankAccountRepo.save(acct);
+
+    // ✅ 3) Guardar PDF para admin
+    const savedFile = await this.saveCertificateToDisk(userId, file);
+
+    return {
+      ok: true,
+      bankName,
+      accountType,
+      accountNumber,
+      holderName,
+      identification: certIdentification || expectedIdentification || null,
+      bankAccountId: String(savedAccount.id),
+      certificateStored: !!savedFile,
+      certificatePath: savedFile?.path ?? null,
+      certificateFilename: savedFile?.filename ?? null,
+    };
+  }
+
+  // =========================
+  // Public API (LO QUE YA TE FUNCIONA)
   // =========================
 
   async generateContractFromToken(token: string): Promise<Buffer> {
-    console.log('[contracts-service] JWT_SECRET loaded?:', process.env.JWT_SECRET);
+    console.log(
+      '[contracts-service] JWT_SECRET loaded?:',
+      process.env.JWT_SECRET,
+    );
 
-    let payload: any;
-    try {
-      payload = this.jwtService.verify(token);
-    } catch {
-      throw new UnauthorizedException('Invalid token');
-    }
-
-    // tu token tiene id/email/role (según tu log)
-    const userId = payload?.sub || payload?.id || payload?.userId;
-    if (!userId) throw new UnauthorizedException('Token without user id');
-
+    const userId = this.getUserIdFromToken(token);
     return this.generateContractByUserId(userId);
   }
 
@@ -136,12 +274,14 @@ export class ContractService {
 
     if (!user) throw new NotFoundException('User not found');
 
-    const studentFullName = `${this.safe((user as any).firstName)} ${this.safe((user as any).lastName)}`.trim();
+    const studentFullName = `${this.safe((user as any).firstName)} ${this.safe(
+      (user as any).lastName,
+    )}`.trim();
     const studentId = this.safe((user as any).identification);
 
     // 3) Scholar (faculty_id + career_id)
     const scholar = await this.scholarRepo.findOne({
-      where: { id: userId } as any, // en tu ER: scholars.id = users.id
+      where: { id: userId } as any,
     });
 
     // 4) Faculty + Career
@@ -164,11 +304,10 @@ export class ContractService {
       }
     }
 
-    // 5) BankAccount (última) + Bank
+    // 5) BankAccount + Bank
     const bankAccount = await this.bankAccountRepo.findOne({
       where: { userId } as any,
     });
-
 
     let bankName = 'PENDIENTE_DB';
     let accountType = 'PENDIENTE_DB';
@@ -176,20 +315,19 @@ export class ContractService {
     let holderName = studentFullName || 'PENDIENTE_DB';
 
     if (bankAccount) {
-      accountType = this.safe((bankAccount as any).accountType);
-      accountNumber = this.safe((bankAccount as any).accountNumber);
-      holderName = this.safe((bankAccount as any).holderName, holderName);
+      accountType = this.safe(bankAccount.accountType);
+      accountNumber = this.safe(bankAccount.accountNumber);
+      holderName = this.safe(bankAccount.holderName, holderName);
 
-      const bankId = (bankAccount as any).bankId;
-      if (bankId) {
+      if (bankAccount.bankId) {
         const bank = await this.bankRepo.findOne({
-          where: { id: bankId } as any,
+          where: { id: bankAccount.bankId } as any,
         });
         bankName = this.safe((bank as any)?.name);
       }
     }
 
-    // 6) Data final para Handlebars (esto es lo que mata los PENDIENTE_DB)
+    // 6) Data final para Handlebars
     const contractData = {
       academic_period: this.formatAcademicPeriod(
         (contract as any).academicPeriodStart,
