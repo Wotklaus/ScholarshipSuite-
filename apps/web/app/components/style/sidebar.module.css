@@ -2,7 +2,7 @@
 .sidebar {
   width: 250px;
   min-height: 100vh;
-  background: #383e43;
+  background: #1c4a70;
   color: #ffffff;
   left: 0;
   top: 0;
@@ -24,17 +24,17 @@
 
 /* Encabezados */
 .sidebarHeading {
-  font-size: 0.95rem;
+  font-size: 0.90rem;
   font-weight: bold;
   text-transform: uppercase;
-  color: #b0bec9;
+  color: #ffffff;
   margin: 1.2rem 0 0.7rem;
   margin-left: 0.5rem;
 }
 
 /* Links principales */
 .sidebarLink {
-  color: #cec9c9;
+  color: #ffffff;
   font-size: 1rem;
   border-radius: 4px;
   text-decoration: none;
@@ -43,7 +43,7 @@
 }
 
 .sidebarLink:hover {
-  background: #4e555c;
+  background: #346392;
   color: #ffffff;
 }
 
@@ -54,14 +54,14 @@
   justify-content: start;
   background: none;
   border: none;
-  color: #e9e8e8;
+  color: #ffffff;
   cursor: pointer;
   padding: 0.7rem 0.7rem;
-  font-size: 1.1rem;
+  font-size: 1rem;
 }
 
 .collapsible:hover {
-  background: #4e555c;
+  background: #346392;
 }
 
 /* Submenús en columna */
@@ -69,13 +69,13 @@
   display: flex;
   flex-direction: column;
   margin-left: 1.5rem;
-  border-left: 2px solid #2a3136;
+  border-left: 2px solid #3a749b;
   padding-left: 0.5rem;
 }
 
 /* Estilos específicos para submenús de Ctas Bancarias y Firmas */
 .sidebarNested a {
-  color: #d2d2d2;
+  color: #ebe1e1;
   font-size: 0.9rem;
   padding: 0.5rem 0;
   text-decoration: none;
@@ -83,7 +83,7 @@
 
 .sidebarNested a:hover {
   color: #ffffff;
-  background-color: #4e555c;
+  background-color: #346392;
   border-radius: 4px;
 }
 
@@ -91,16 +91,16 @@
 .sidebarFooter {
   margin-top: auto;
   padding: 1.2rem;
-  border-top: 1px solid #2a3136;
+  border-top: 1px solid #2f668d;
 }
 
 .sidebarLogout {
-  color: #d6d3d3;
+  color: #e4dbdb;
   font-size: 1.1rem;
   text-decoration: none;
   font-weight: 500;
 }
 
 .sidebarLogout:hover {
-  color: #ffc107;
+  color: #ffffff;
 }

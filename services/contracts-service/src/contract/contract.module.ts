@@ -27,15 +27,12 @@ import { Bank } from './entities/bank.entity';
       BankAccount,
       Bank,
     ]),
-
-    // ✅ IMPORTANTÍSIMO: esto garantiza que el secret se lee CUANDO YA EXISTE el .env
     JwtModule.registerAsync({
       imports: [ConfigModule],
       inject: [ConfigService],
       useFactory: (config: ConfigService) => {
         const secret = config.get<string>('JWT_SECRET');
         if (!secret) {
-          // Si falta, te revienta al arrancar (NO 3 horas después)
           throw new Error('JWT_SECRET missing in contracts-service env');
         }
         return { secret };
