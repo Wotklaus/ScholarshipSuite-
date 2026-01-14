@@ -11,6 +11,7 @@ import * as path from 'path';
 import * as Handlebars from 'handlebars';
 import * as puppeteer from 'puppeteer';
 import { JwtService } from '@nestjs/jwt';
+import * as crypto from 'crypto';
 
 import { Contract } from './entities/contract.entity';
 import { User } from './entities/user.entity';
@@ -19,6 +20,7 @@ import { Faculty } from './entities/faculty.entity';
 import { Career } from './entities/career.entity';
 import { BankAccount } from './entities/bank-account.entity';
 import { Bank } from './entities/bank.entity';
+import { BankCertificate } from './entities/bank-certificate.entity';
 
 @Injectable()
 export class ContractService {
@@ -43,6 +45,9 @@ export class ContractService {
 
     @InjectRepository(Bank)
     private readonly bankRepo: Repository<Bank>,
+
+    @InjectRepository(BankCertificate)
+    private readonly bankCertificateRepo: Repository<BankCertificate>,
 
     private readonly jwtService: JwtService,
   ) {}
@@ -122,6 +127,10 @@ export class ContractService {
     if (!fs.existsSync(dir)) fs.mkdirSync(dir, { recursive: true });
   }
 
+  private sha256(buffer: Buffer): string {
+    return crypto.createHash('sha256').update(buffer).digest('hex');
+  }
+
   private async saveCertificateToDisk(userId: string, file: any) {
     if (!file?.buffer) return null;
 
@@ -143,20 +152,21 @@ export class ContractService {
     fs.writeFileSync(fullPath, file.buffer);
 
     return {
-      path: fullPath,
+      filePath: fullPath,
       filename,
       mimeType: file.mimetype ?? 'application/octet-stream',
       size: file.size ?? file.buffer?.length ?? 0,
+      hashSha256: this.sha256(file.buffer),
     };
   }
 
   // =========================
-  // ✅ Guardar/Actualizar cuenta bancaria + guardar PDF
+  // ✅ Upsert bank account + persist bank certificate metadata
   // =========================
   async upsertBankAccountFromToken(token: string, body: any, file?: any) {
     if (!body) {
       throw new BadRequestException(
-        'Body vacío. Revisa que el endpoint use FileInterceptor("file").',
+        'Empty body. Ensure multipart/form-data is being sent.',
       );
     }
 
@@ -165,16 +175,18 @@ export class ContractService {
     const user = await this.userRepo.findOne({ where: { id: userId } as any });
     if (!user) throw new NotFoundException('User not found');
 
-    const expectedIdentification = String(
-      (user as any).identification ?? '',
-    ).trim();
+    const expectedIdentification = String((user as any).identification ?? '').trim();
     const certIdentification = String(body.identification ?? '').trim();
 
+    // Optional: validate only if certificate identification is provided
     if (
       certIdentification &&
       expectedIdentification &&
       certIdentification !== expectedIdentification
     ) {
+      console.warn(
+        `[contracts] Certificate ID mismatch. expected=${expectedIdentification} got=${certIdentification}`,
+      );
       throw new BadRequestException(
         'La cédula del certificado no coincide con tu usuario.',
       );
@@ -195,7 +207,7 @@ export class ContractService {
       );
     }
 
-    // ✅ 1) Bank (crear si no existe) — SIN "as any" para que NO tome overload de array
+    // 1) Bank (create if missing)
     let bank = await this.bankRepo.findOne({
       where: { name: bankName } as any,
     });
@@ -203,9 +215,10 @@ export class ContractService {
     if (!bank) {
       const newBank = this.bankRepo.create({ name: bankName });
       bank = await this.bankRepo.save(newBank);
+      console.log(`[contracts] Bank created: ${bankName} (${bank.id})`);
     }
 
-    // ✅ 2) BankAccount (crear o actualizar) — SIN "as any" para que NO tome overload de array
+    // 2) BankAccount (create/update)
     let acct = await this.bankAccountRepo.findOne({
       where: { userId } as any,
     });
@@ -218,17 +231,45 @@ export class ContractService {
         accountNumber,
         holderName,
       });
+      console.log(`[contracts] Bank account will be created for user=${userId}`);
     } else {
       acct.bankId = bank.id;
       acct.accountType = accountType;
       acct.accountNumber = accountNumber;
       acct.holderName = holderName;
+      console.log(`[contracts] Bank account will be updated for user=${userId}`);
     }
 
     const savedAccount = await this.bankAccountRepo.save(acct);
 
-    // ✅ 3) Guardar PDF para admin
+    // 3) Store PDF on disk (optional if file missing)
     const savedFile = await this.saveCertificateToDisk(userId, file);
+
+    // 4) Persist certificate metadata in DB (only if file exists)
+    let savedCertificateId: string | null = null;
+
+    if (savedFile) {
+      const cert = this.bankCertificateRepo.create({
+        user_id: userId,
+        identification: certIdentification || expectedIdentification || '',
+        bank_name: bankName,
+        account_type: accountType,
+        account_number: accountNumber,
+        holder_name: holderName,
+        file_path: savedFile.filePath,
+      } as any);
+
+      const savedCert = await this.bankCertificateRepo.save(cert);
+      savedCertificateId = String((savedCert as any).id);
+
+      console.log(
+        `[contracts] Bank certificate saved. user=${userId} certId=${savedCertificateId} file=${savedFile.filename} sha256=${savedFile.hashSha256}`,
+      );
+    } else {
+      console.warn(
+        `[contracts] No certificate file provided. Only bank account was updated. user=${userId}`,
+      );
+    }
 
     return {
       ok: true,
@@ -238,28 +279,65 @@ export class ContractService {
       holderName,
       identification: certIdentification || expectedIdentification || null,
       bankAccountId: String(savedAccount.id),
+
       certificateStored: !!savedFile,
-      certificatePath: savedFile?.path ?? null,
+      certificateId: savedCertificateId,
+      certificatePath: savedFile?.filePath ?? null,
       certificateFilename: savedFile?.filename ?? null,
+      certificateSha256: savedFile?.hashSha256 ?? null,
     };
   }
 
   // =========================
-  // Public API (LO QUE YA TE FUNCIONA)
+  // ✅ Download helpers
+  // =========================
+
+  async getLatestCertificateFileFromToken(token: string): Promise<{
+    filePath: string;
+    downloadName: string;
+  }> {
+    const userId = this.getUserIdFromToken(token);
+    return this.getLatestCertificateFileByUserId(userId);
+  }
+
+  async getLatestCertificateFileByUserId(userId: string): Promise<{
+    filePath: string;
+    downloadName: string;
+  }> {
+    const cert = await this.bankCertificateRepo.findOne({
+      where: { user_id: userId } as any,
+      order: { created_at: 'DESC' as any },
+    });
+
+    if (!cert) {
+      throw new NotFoundException('No bank certificate found for this user');
+    }
+
+    const filePath = String((cert as any).file_path ?? '').trim();
+    if (!filePath || !fs.existsSync(filePath)) {
+      throw new NotFoundException('Bank certificate file not found on disk');
+    }
+
+    const downloadName = path.basename(filePath);
+    console.log(
+      `[contracts] Download certificate user=${userId} file=${downloadName}`,
+    );
+
+    return { filePath, downloadName };
+  }
+
+  // =========================
+  // Public API (existing)
   // =========================
 
   async generateContractFromToken(token: string): Promise<Buffer> {
-    console.log(
-      '[contracts-service] JWT_SECRET loaded?:',
-      process.env.JWT_SECRET,
-    );
+    console.log('[contracts-service] JWT_SECRET loaded?:', process.env.JWT_SECRET);
 
     const userId = this.getUserIdFromToken(token);
     return this.generateContractByUserId(userId);
   }
 
   async generateContractByUserId(userId: string): Promise<Buffer> {
-    // 1) Contrato (el último)
     const contract = await this.contractRepo.findOne({
       where: { userId } as any,
       order: { createdAt: 'DESC' as any },
@@ -267,7 +345,6 @@ export class ContractService {
 
     if (!contract) throw new NotFoundException('No contract found for user');
 
-    // 2) User (nombre + identificación)
     const user = await this.userRepo.findOne({
       where: { id: userId } as any,
     });
@@ -279,12 +356,10 @@ export class ContractService {
     )}`.trim();
     const studentId = this.safe((user as any).identification);
 
-    // 3) Scholar (faculty_id + career_id)
     const scholar = await this.scholarRepo.findOne({
       where: { id: userId } as any,
     });
 
-    // 4) Faculty + Career
     let facultyName = 'PENDIENTE_DB';
     let careerName = 'PENDIENTE_DB';
 
@@ -304,7 +379,6 @@ export class ContractService {
       }
     }
 
-    // 5) BankAccount + Bank
     const bankAccount = await this.bankAccountRepo.findOne({
       where: { userId } as any,
     });
@@ -327,7 +401,6 @@ export class ContractService {
       }
     }
 
-    // 6) Data final para Handlebars
     const contractData = {
       academic_period: this.formatAcademicPeriod(
         (contract as any).academicPeriodStart,
@@ -349,11 +422,9 @@ export class ContractService {
       holder_name: this.safe(holderName),
     };
 
-    // 7) Logo
     const logoPath = path.join(process.cwd(), 'src', 'assets', 'logouce.png');
     const logoBase64 = fs.readFileSync(logoPath, 'base64');
 
-    // 8) Plantilla
     const templatePath = path.join(
       process.cwd(),
       'src',
@@ -368,7 +439,6 @@ export class ContractService {
       logo: `data:image/png;base64,${logoBase64}`,
     });
 
-    // 9) PDF
     const browser = await puppeteer.launch({
       headless: true,
       args: ['--no-sandbox', '--disable-setuid-sandbox'],

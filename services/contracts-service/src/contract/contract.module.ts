@@ -14,6 +14,7 @@ import { Faculty } from './entities/faculty.entity';
 import { Career } from './entities/career.entity';
 import { BankAccount } from './entities/bank-account.entity';
 import { Bank } from './entities/bank.entity';
+import { BankCertificate } from './entities/bank-certificate.entity'; // ✅ NUEVO
 
 @Module({
   imports: [
@@ -26,6 +27,7 @@ import { Bank } from './entities/bank.entity';
       Career,
       BankAccount,
       Bank,
+      BankCertificate, // ✅ NUEVO
     ]),
     JwtModule.registerAsync({
       imports: [ConfigModule],
