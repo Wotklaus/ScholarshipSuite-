@@ -53,13 +53,4 @@ OCR for scanned PDFs is **out of scope** for the current MVP (future improvement
 Swagger UI:
 - `http://localhost:3003/docs`
 
----
 
-## Endpoints
-
-### Health check
-- `GET /bank-certificate/health`
-
-Response:
-```json
-{ "ok": true }

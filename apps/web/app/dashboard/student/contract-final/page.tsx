@@ -14,23 +14,20 @@ type DetectedBankData = {
   holderName?: string;
 };
 
+type SignatureMethod = "ELECTRONIC" | "MANUAL";
+
 function extractNestErrorMessage(raw: string): string {
-  // Nest usually returns: { message, error, statusCode }
   try {
     const j = JSON.parse(raw);
     if (typeof j?.message === "string") return j.message;
     if (Array.isArray(j?.message) && typeof j.message?.[0] === "string") return j.message[0];
-  } catch {
-    // ignore
-  }
+  } catch {}
   return raw;
 }
 
 function toFriendlyUploadError(msg: string): string {
   const m = (msg || "").toLowerCase();
 
-  // Your current backend message:
-  // "La cédula del certificado no coincide con tu usuario."
   if (m.includes("no coincide") || m.includes("cédula") || m.includes("cedula")) {
     return (
       "⚠️ The uploaded bank certificate does not belong to your account.\n" +
@@ -38,25 +35,26 @@ function toFriendlyUploadError(msg: string): string {
     );
   }
 
-  // Multer / file filter type errors
   if (m.includes("only pdf") || m.includes("pdf")) {
     return "⚠️ Please upload a PDF file (official bank certificate).";
   }
 
-  // Fallback
   return msg || "An unexpected error occurred while processing the certificate.";
 }
 
 export default function ContractFinalPage() {
+  // -----------------------------
+  // Contract preview + certificate flow
+  // -----------------------------
   const [numPages, setNumPages] = useState<number>(0);
   const [errorMessage, setErrorMessage] = useState("");
+
   const [uploadName, setUploadName] = useState<string | null>(null);
   const [isUploading, setIsUploading] = useState(false);
 
   const [detected, setDetected] = useState<DetectedBankData | null>(null);
   const [savedOk, setSavedOk] = useState(false);
 
-  // Force reload of the PDF after saving bank data
   const [pdfNonce, setPdfNonce] = useState<number>(Date.now());
   const DYNAMIC_URL = useMemo(() => `/api/contracts/dynamic?ts=${pdfNonce}`, [pdfNonce]);
 
@@ -97,10 +95,12 @@ export default function ContractFinalPage() {
     setSavedOk(false);
     setDetected(null);
 
+    // reset signature flow if user uploads a new certificate
+    resetSignatureFlow();
+
     const file = e.target.files?.[0];
     if (!file) return;
 
-    // Client-side file validation (avoid sending invalid types)
     if (file.type !== "application/pdf") {
       setErrorMessage("⚠️ Please upload a PDF file (official bank certificate).");
       e.target.value = "";
@@ -111,7 +111,7 @@ export default function ContractFinalPage() {
     setIsUploading(true);
 
     try {
-      // 1) Parse in validation-service (via Next route)
+      // 1) parse via validation-service (Next route)
       const fd = new FormData();
       fd.append("file", file);
 
@@ -134,7 +134,7 @@ export default function ContractFinalPage() {
 
       setDetected(parsed);
 
-      // 2) Save in contracts-service (DB + file)
+      // 2) save in contracts-service (DB + file)
       const saveFd = new FormData();
       saveFd.append("file", file);
       saveFd.append("identification", parsed.identification ?? "");
@@ -155,8 +155,6 @@ export default function ContractFinalPage() {
       }
 
       setSavedOk(true);
-
-      // 3) Reload the dynamic PDF after bank data is saved
       setPdfNonce(Date.now());
     } catch (err: any) {
       console.error(err);
@@ -168,10 +166,128 @@ export default function ContractFinalPage() {
     }
   }
 
-  const handleContinue = () => {
-    alert("Continue (OK) — next step goes here");
-  };
+  // -----------------------------
+  // Signature flow (+ finalize contract)
+  // -----------------------------
+  // por ahora sigues con mock contract id (si quieres mañana lo hacemos dinámico desde contracts-service)
+  const MOCK_CONTRACT_ID = "99999999-9999-9999-9999-999999999002";
 
+  const [signatureMethod, setSignatureMethod] = useState<SignatureMethod | null>(null);
+  const [signatureId, setSignatureId] = useState<string | null>(null);
+  const [challengeCode, setChallengeCode] = useState<string | null>(null);
+  const [confirmCode, setConfirmCode] = useState("");
+
+  const [signatureStatus, setSignatureStatus] = useState<"IDLE" | "STARTED" | "SIGNED">("IDLE");
+  const [signatureHash, setSignatureHash] = useState<string | null>(null);
+
+  const [isFinalizing, setIsFinalizing] = useState(false);
+  const [finalizedOk, setFinalizedOk] = useState(false);
+
+  function resetSignatureFlow() {
+    setSignatureMethod(null);
+    setSignatureId(null);
+    setChallengeCode(null);
+    setConfirmCode("");
+    setSignatureStatus("IDLE");
+    setSignatureHash(null);
+    setIsFinalizing(false);
+    setFinalizedOk(false);
+  }
+
+  async function startSignature(method: SignatureMethod) {
+    setErrorMessage("");
+
+    try {
+      const res = await fetch("/api/signatures/start", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          contractId: MOCK_CONTRACT_ID,
+          method,
+        }),
+      });
+
+      if (!res.ok) {
+        const raw = await res.text();
+        throw new Error(extractNestErrorMessage(raw));
+      }
+
+      const data = await res.json();
+
+      setSignatureMethod(method);
+      setSignatureId(data.signatureId);
+      setChallengeCode(data.challengeCode ?? null);
+      setSignatureStatus("STARTED");
+    } catch (err: any) {
+      setErrorMessage(err.message || "Unable to start signature process.");
+    }
+  }
+
+  async function confirmSignature() {
+    if (!signatureId) return;
+
+    setErrorMessage("");
+
+    try {
+      const res = await fetch("/api/signatures/confirm", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          signatureId,
+          code: signatureMethod === "ELECTRONIC" ? confirmCode : undefined,
+        }),
+      });
+
+      if (!res.ok) {
+        const raw = await res.text();
+        throw new Error(extractNestErrorMessage(raw));
+      }
+
+      const data = await res.json();
+      // ✅ aquí guardamos el hash para poder finalizar contrato
+      setSignatureHash(data.signatureHash ?? null);
+      setSignatureStatus("SIGNED");
+    } catch (err: any) {
+      setErrorMessage(err.message || "Unable to confirm signature.");
+    }
+  }
+
+  async function finalizeContract() {
+    if (!signatureHash) {
+      setErrorMessage("Missing signature hash. Please confirm the signature again.");
+      return;
+    }
+
+    setErrorMessage("");
+    setIsFinalizing(true);
+
+    try {
+      const res = await fetch("/api/contracts/finalize", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ signatureHash }),
+      });
+
+      if (!res.ok) {
+        const raw = await res.text();
+        throw new Error(extractNestErrorMessage(raw));
+      }
+
+      await res.json();
+      setFinalizedOk(true);
+
+      // refresca PDF (opcional) ya con status firmado
+      setPdfNonce(Date.now());
+    } catch (err: any) {
+      setErrorMessage(err.message || "Unable to finalize contract.");
+    } finally {
+      setIsFinalizing(false);
+    }
+  }
+
+  // -----------------------------
+  // Render
+  // -----------------------------
   return (
     <div className={styles.container}>
       <div className={styles.infoCard}>
@@ -185,46 +301,117 @@ export default function ContractFinalPage() {
           </div>
         </div>
 
-        <div className={styles.alertBox}>
-          <div className={styles.alertIcon}>!</div>
-          <div className={styles.alertBody}>
-            <div className={styles.alertTitle}>Bank Certificate Required</div>
-            <div className={styles.alertText}>
-              To complete the fields for <b>bank</b>, <b>account type</b>, and <b>account number</b>, please upload your{" "}
-              <b>official bank certificate (PDF)</b>. The system will extract and validate the data automatically.
+        {/* ALERT */}
+        {!savedOk ? (
+          <div className={styles.alertBox}>
+            <div className={styles.alertIcon}>!</div>
+            <div className={styles.alertBody}>
+              <div className={styles.alertTitle}>Bank Certificate Required</div>
+              <div className={styles.alertText}>
+                To complete the fields for <b>bank</b>, <b>account type</b>, and <b>account number</b>, please upload your{" "}
+                <b>official bank certificate (PDF)</b>. The system will extract and validate the data automatically.
+              </div>
             </div>
           </div>
-        </div>
+        ) : (
+          <div className={styles.alertBox}>
+            <div className={styles.alertIcon}>✓</div>
+            <div className={styles.alertBody}>
+              <div className={styles.alertTitle}>Certificate validated</div>
+              <div className={styles.alertText}>
+                Your bank data was saved successfully. Now choose your contract signing method.
+              </div>
+            </div>
+          </div>
+        )}
 
+        {/* ACTIONS */}
         <div className={styles.actions}>
-          <label className={styles.secondaryButton}>
-            {isUploading ? "Processing..." : "Upload certificate (PDF)"}
-            <input
-              type="file"
-              accept="application/pdf"
-              onChange={handlePickFile}
-              className={styles.hiddenInput}
-              disabled={isUploading}
-            />
-          </label>
+          {!savedOk && (
+            <label className={styles.secondaryButton}>
+              {isUploading ? "Processing..." : "Upload certificate (PDF)"}
+              <input
+                type="file"
+                accept="application/pdf"
+                onChange={handlePickFile}
+                className={styles.hiddenInput}
+                disabled={isUploading}
+              />
+            </label>
+          )}
 
-          <button
-            className={styles.primaryButton}
-            onClick={handleContinue}
-            disabled={!savedOk || isUploading}
-          >
-            Continue
-          </button>
+          {savedOk && signatureStatus === "IDLE" && (
+            <>
+              <button className={styles.primaryButton} onClick={() => startSignature("ELECTRONIC")}>
+                Sign electronically
+              </button>
+              <button className={styles.secondaryButton} onClick={() => startSignature("MANUAL")}>
+                Sign manually (print & upload)
+              </button>
+            </>
+          )}
+
+          {signatureStatus === "STARTED" && signatureMethod === "ELECTRONIC" && (
+            <div style={{ marginTop: 12, width: "100%" }}>
+              <p style={{ marginBottom: 6 }}>Enter the confirmation code sent by the signature provider.</p>
+
+              {/* debug opcional */}
+              {challengeCode && (
+                <p style={{ marginBottom: 6 }}>
+                  <b>Mock code:</b> {challengeCode}
+                </p>
+              )}
+
+              <input
+                type="text"
+                value={confirmCode}
+                onChange={(e) => setConfirmCode(e.target.value)}
+                placeholder="6-digit code"
+                style={{ padding: 10, width: "100%", marginBottom: 10 }}
+              />
+
+              <button className={styles.primaryButton} onClick={confirmSignature}>
+                Confirm signature
+              </button>
+            </div>
+          )}
+
+          {signatureStatus === "STARTED" && signatureMethod === "MANUAL" && (
+            <button className={styles.primaryButton} onClick={confirmSignature}>
+              Confirm manual signature
+            </button>
+          )}
+
+          {signatureStatus === "SIGNED" && !finalizedOk && (
+            <div style={{ marginTop: 12, width: "100%" }}>
+              <p style={{ marginBottom: 8 }}>✅ Signature completed. Final step: store the final signed PDF.</p>
+
+              <button className={styles.primaryButton} onClick={finalizeContract} disabled={isFinalizing}>
+                {isFinalizing ? "Finalizing..." : "Finalize contract"}
+              </button>
+
+              {signatureHash && (
+                <p style={{ marginTop: 8, fontSize: 12, opacity: 0.8 }}>
+                  <b>Signature hash:</b> {signatureHash}
+                </p>
+              )}
+            </div>
+          )}
+
+          {finalizedOk && (
+            <p style={{ marginTop: 10 }}>
+              ✅ Contract stored successfully. You can now leave this page.
+            </p>
+          )}
         </div>
 
+        {/* INFO */}
         {uploadName ? (
           <p className={styles.uploadInfo}>
             File: <b>{uploadName}</b>
           </p>
         ) : (
-          <p className={styles.uploadHint}>
-            Upload the certificate to enable <b>“Continue”</b>.
-          </p>
+          <p className={styles.uploadHint}>Upload the certificate to enable signing.</p>
         )}
 
         {detected && (
@@ -235,10 +422,10 @@ export default function ContractFinalPage() {
         )}
 
         {savedOk && <p style={{ marginTop: 6 }}>✅ Saved successfully. Your contract preview was updated.</p>}
-
         {errorMessage && <p className={styles.error}>{errorMessage}</p>}
       </div>
 
+      {/* PDF PREVIEW */}
       <div className={styles.pdfSection}>
         <div className={styles.pdfWrap} ref={pdfWrapRef}>
           <Document

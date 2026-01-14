@@ -14,10 +14,10 @@ export class ContractSignature {
   @PrimaryGeneratedColumn('uuid')
   id: string;
 
-  @Column({ type: 'uuid' })
+  @Column({ name: 'contract_id', type: 'uuid' })
   contractId: string;
 
-  @Column({ type: 'uuid' })
+  @Column({ name: 'user_id', type: 'uuid' })
   userId: string;
 
   @Column({ type: 'varchar' })
@@ -29,20 +29,18 @@ export class ContractSignature {
   @Column({ type: 'varchar', default: 'MOCK' })
   provider: string;
 
-  // Mock challenge (for electronic flow)
-  @Column({ type: 'varchar', nullable: true })
+  @Column({ name: 'challenge_code', type: 'varchar', nullable: true })
   challengeCode: string | null;
 
-  // Receipt hash (mock)
-  @Column({ type: 'varchar', nullable: true })
+  @Column({ name: 'signature_hash', type: 'varchar', nullable: true })
   signatureHash: string | null;
 
-  @Column({ type: 'timestamp', nullable: true })
+  @Column({ name: 'signed_at', type: 'timestamp', nullable: true })
   signedAt: Date | null;
 
-  @CreateDateColumn()
+  @CreateDateColumn({ name: 'created_at' })
   createdAt: Date;
 
-  @UpdateDateColumn()
+  @UpdateDateColumn({ name: 'updated_at' })
   updatedAt: Date;
 }

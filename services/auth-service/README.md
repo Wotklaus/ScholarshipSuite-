@@ -51,3 +51,5 @@ This microservice intentionally avoids unnecessary complexity such as CQRS or Ev
 ## API Documentation
 Swagger UI is available at:
 
+http://localhost:3000/docs
+
