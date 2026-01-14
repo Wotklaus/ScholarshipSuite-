@@ -21,21 +21,57 @@ type Hint = {
 };
 
 const HINTS: Hint[] = [
-  { id: "periodo", title: "Periodo académico", text: "Se reemplazará por tu periodo académico real según el sistema (ej: MAYO 2023 – SEPTIEMBRE 2023)." },
-  { id: "numero", title: "Número de oficio", text: "Se reemplazará por el número oficial del contrato asignado por Bienestar Universitario." },
-  { id: "nombre", title: "Nombre del estudiante", text: "Se reemplazará por tu nombre completo tal como consta en tu registro institucional." },
-  { id: "id", title: "Identificación", text: "Se reemplazará por tu cédula registrada en el sistema." },
-  { id: "facultad", title: "Facultad y carrera", text: "Se reemplazará por tu facultad y carrera oficiales registradas." },
-  { id: "banco", title: "Banco", text: "Se reemplazará por el banco registrado en el sistema (ej: BANCO PICHINCHA)." },
-  { id: "tipoCuenta", title: "Tipo de cuenta", text: "Se reemplazará por tu tipo de cuenta registrada (ej: AHORROS)." },
-  { id: "cuenta", title: "Número de cuenta", text: "Se reemplazará por tu número de cuenta registrado." },
-  { id: "titularFirma", title: "Titular / Firma", text: "Se reemplazará por el titular de la cuenta (quien firma como becario/a)." },
+  {
+    id: "periodo",
+    title: "Academic period",
+    text: "This will be replaced with your actual academic period from the system (e.g., MAY 2023 – SEPTEMBER 2023).",
+  },
+  {
+    id: "numero",
+    title: "Official document number",
+    text: "This will be replaced with the official contract reference number assigned by Student Welfare.",
+  },
+  {
+    id: "nombre",
+    title: "Student name",
+    text: "This will be replaced with your full name exactly as registered in the institutional system.",
+  },
+  {
+    id: "id",
+    title: "Identification",
+    text: "This will be replaced with the ID number registered in the system.",
+  },
+  {
+    id: "facultad",
+    title: "Faculty and career",
+    text: "This will be replaced with your official faculty and career on record.",
+  },
+  {
+    id: "banco",
+    title: "Bank",
+    text: "This will be replaced with the bank registered in the system (e.g., BANCO PICHINCHA).",
+  },
+  {
+    id: "tipoCuenta",
+    title: "Account type",
+    text: "This will be replaced with your registered account type (e.g., SAVINGS).",
+  },
+  {
+    id: "cuenta",
+    title: "Account number",
+    text: "This will be replaced with your registered account number.",
+  },
+  {
+    id: "titularFirma",
+    title: "Account holder / Signature",
+    text: "This will be replaced with the account holder (the scholarship beneficiary who signs the contract).",
+  },
 ];
 
 export default function GenerateContract() {
   const router = useRouter();
 
-  // worker solo cliente
+  // Worker only on client
   useEffect(() => {
     (async () => {
       const mod = await import("react-pdf");
@@ -54,7 +90,7 @@ export default function GenerateContract() {
 
   const [expandedId, setExpandedId] = useState<string | null>(null);
 
-  // ✅ medir ancho real del contenedor del PDF
+  // Measure actual PDF container width
   const pdfWrapRef = useRef<HTMLDivElement | null>(null);
   const [pdfWrapWidth, setPdfWrapWidth] = useState<number>(900);
 
@@ -88,7 +124,7 @@ export default function GenerateContract() {
       setPageNumber(1);
     } catch (e) {
       console.error(e);
-      setErrorMessage("No se pudo cargar la plantilla. Intenta nuevamente.");
+      setErrorMessage("Unable to load the template. Please try again.");
     } finally {
       setLoading(false);
     }
@@ -120,11 +156,10 @@ export default function GenerateContract() {
             </div>
 
             <div>
-              <h2 className={styles.welcomeTitle}>¡Bienvenido/a!</h2>
+              <h2 className={styles.welcomeTitle}>Welcome!</h2>
               <p className={styles.welcomeText}>
-                Has sido seleccionado/a para el programa. El proceso es <b>automático</b>: el sistema tomará tu
-                información institucional (nombre, identificación, facultad, carrera y periodo) y generará tu contrato
-                de forma segura.
+                You have been selected for the program. This process is <b>automatic</b>: the system will use your
+                institutional data (name, ID, faculty, career, and academic period) to generate your contract securely.
               </p>
             </div>
           </div>
@@ -133,32 +168,32 @@ export default function GenerateContract() {
         <div className={styles.checklist}>
           <div className={styles.checkItem}>
             <span className={styles.checkIcon}>✓</span>
-            <span>Revisar la plantilla oficial</span>
+            <span>Review the official template</span>
           </div>
           <div className={styles.checkItem}>
             <span className={styles.checkIcon}>✓</span>
-            <span>Confirmar qué campos se reemplazarán con tus datos</span>
+            <span>Confirm which fields will be replaced with your data</span>
           </div>
           <div className={styles.checkItem}>
             <span className={styles.checkIcon}>✓</span>
-            <span>Comenzar el proceso de tu contrato</span>
+            <span>Start your contract process</span>
           </div>
         </div>
 
         <div className={styles.alertBox}>
           <div className={styles.alertIcon}>!</div>
           <div className={styles.alertBody}>
-            <div className={styles.alertTitle}>Importante</div>
+            <div className={styles.alertTitle}>Important</div>
             <div className={styles.alertText}>
-              En la plantilla verás partes destacadas (amarillo). Esas secciones se reemplazarán automáticamente por tus
-              datos reales. Si algo no coincide, no continúes y contacta a Bienestar Universitario.
+              In the template you will see highlighted sections (yellow). Those parts will be replaced automatically
+              with your real data. If anything does not match, do not continue and contact Student Welfare.
             </div>
           </div>
         </div>
 
         {!showPDF && (
           <button className={styles.primaryButton} onClick={handleContinue} disabled={loading}>
-            {loading ? "Cargando..." : "Continuar"}
+            {loading ? "Loading..." : "Continue"}
           </button>
         )}
 
@@ -169,7 +204,7 @@ export default function GenerateContract() {
         <>
           <div className={styles.templateSection}>
             <div className={styles.hintsPanel}>
-              <h3 className={styles.hintsTitle}>Campos que se reemplazarán</h3>
+              <h3 className={styles.hintsTitle}>Fields that will be replaced</h3>
 
               <div className={styles.hintsList}>
                 {HINTS.map((h) => {
@@ -203,10 +238,15 @@ export default function GenerateContract() {
                 <Document
                   file={templateUrl}
                   onLoadSuccess={onDocumentLoadSuccess}
-                  loading={<p className={styles.pdfLoading}>Cargando el PDF...</p>}
-                  error={<p className={styles.pdfError}>No se pudo cargar el PDF desde el servidor.</p>}
+                  loading={<p className={styles.pdfLoading}>Loading PDF...</p>}
+                  error={<p className={styles.pdfError}>Unable to load the PDF from the server.</p>}
                 >
-                  <Page pageNumber={pageNumber} width={pageWidth} renderTextLayer={false} renderAnnotationLayer={false} />
+                  <Page
+                    pageNumber={pageNumber}
+                    width={pageWidth}
+                    renderTextLayer={false}
+                    renderAnnotationLayer={false}
+                  />
                 </Document>
               </div>
             </div>
@@ -214,7 +254,7 @@ export default function GenerateContract() {
 
           <div className={styles.bottomActions}>
             <button className={styles.primaryButton} onClick={handleStart}>
-              Comenzar
+              Start
             </button>
           </div>
         </>

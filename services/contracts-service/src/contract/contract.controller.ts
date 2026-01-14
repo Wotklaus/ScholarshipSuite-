@@ -14,10 +14,19 @@ import type { Request, Response } from 'express';
 import { FileInterceptor } from '@nestjs/platform-express';
 import { memoryStorage } from 'multer';
 import { ContractService } from './contract.service';
+import { FinalizeContractDto } from './dtos/finalize-contract.dto';
+import { ApiTags, ApiConsumes, ApiBody } from '@nestjs/swagger';
 
+@ApiTags('contracts')
 @Controller('contracts')
 export class ContractController {
-  constructor(private readonly contractService: ContractService) {}
+  constructor(private readonly contractService: ContractService) { }
+
+  @Get('health')
+  health() {
+    return { ok: true };
+  }
+
 
   @Get('dynamic')
   async dynamic(@Req() req: Request, @Res() res: Response) {
@@ -113,4 +122,23 @@ export class ContractController {
     res.setHeader('Content-Type', 'application/pdf');
     return res.download(result.filePath, result.downloadName);
   }
+
+
+  @Post('finalize')
+  async finalize(@Req() req: Request, @Body() dto: FinalizeContractDto) {
+    const token =
+      req.cookies?.access_token ||
+      req.cookies?.token ||
+      req.cookies?.jwt ||
+      req.cookies?.Authentication;
+
+    if (!token) {
+      throw new UnauthorizedException('Missing auth cookie token');
+    }
+
+    return this.contractService.finalizeContractFromToken(token, dto);
+  }
+
+
+
 }

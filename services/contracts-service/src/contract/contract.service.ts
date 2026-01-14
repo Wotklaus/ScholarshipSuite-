@@ -21,6 +21,7 @@ import { Career } from './entities/career.entity';
 import { BankAccount } from './entities/bank-account.entity';
 import { Bank } from './entities/bank.entity';
 import { BankCertificate } from './entities/bank-certificate.entity';
+import { FinalizeContractDto } from './dtos/finalize-contract.dto';
 
 @Injectable()
 export class ContractService {
@@ -50,7 +51,7 @@ export class ContractService {
     private readonly bankCertificateRepo: Repository<BankCertificate>,
 
     private readonly jwtService: JwtService,
-  ) {}
+  ) { }
 
   // =========================
   // Helpers
@@ -458,4 +459,54 @@ export class ContractService {
       await browser.close();
     }
   }
+
+
+  async finalizeContractFromToken(token: string, dto: FinalizeContractDto) {
+    const userId = this.getUserIdFromToken(token);
+
+    if (!dto?.signatureHash || String(dto.signatureHash).trim().length < 16) {
+      throw new BadRequestException('signatureHash is required');
+    }
+
+    // 1) Find target contract: explicit contractId OR latest by user
+    const contract = dto.contractId
+      ? await this.contractRepo.findOne({ where: { id: dto.contractId } as any })
+      : await this.contractRepo.findOne({
+        where: { userId } as any,
+        order: { createdAt: 'DESC' as any },
+      });
+
+    if (!contract) {
+      throw new NotFoundException('No contract found to finalize');
+    }
+
+    // Optional: ensure the contract belongs to the same user (if contractId was provided)
+    if ((contract as any).userId && String((contract as any).userId) !== String(userId)) {
+      throw new UnauthorizedException('You cannot finalize a contract that is not yours');
+    }
+
+    // 2) Generate final PDF buffer (same generator used for preview)
+    const pdfBuffer = await this.generateContractByUserId(userId);
+
+    // 3) Store PDF + set signed status + store "blockchain hash" (mock = signature hash)
+    (contract as any).file = pdfBuffer;
+    (contract as any).status = 'signed';
+    (contract as any).blockchainHash = String(dto.signatureHash).trim();
+
+    const saved = await this.contractRepo.save(contract);
+
+    console.log(
+      `[contracts] Contract finalized. user=${userId} contractId=${saved.id} status=${saved.status} storedBytes=${pdfBuffer.length} blockchainHash=${(saved as any).blockchainHash}`,
+    );
+
+    return {
+      ok: true,
+      contractId: String(saved.id),
+      status: String((saved as any).status),
+      storedBytes: pdfBuffer.length,
+      blockchainHash: String((saved as any).blockchainHash),
+    };
+  }
+
+
 }
