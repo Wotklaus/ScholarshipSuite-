@@ -1,59 +1,52 @@
-import { Injectable } from '@nestjs/common';
+import { Injectable, Logger } from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { User } from '../entities/user.entity';
-import * as bcrypt from 'bcrypt'; // Usamos bcrypt en lugar de crypto
+import * as bcrypt from 'bcrypt';
 
 @Injectable()
 export class AuthService {
+  private readonly logger = new Logger(AuthService.name);
+
   constructor(
     @InjectRepository(User)
-    private readonly userRepository: Repository<User>, // Repositorio para interactuar con la DB
-    private readonly jwtService: JwtService, // Servicio para generar el token JWT
+    private readonly userRepository: Repository<User>,
+    private readonly jwtService: JwtService,
   ) {}
 
-  // Método para validar al usuario
+  // Validate user credentials (email + password)
   async validateUser(email: string, password: string): Promise<User | null> {
-    // Buscamos al usuario por email y cargamos el rol
     const user = await this.userRepository.findOne({
       where: { email },
-      relations: ['role'], // Cargar la relación del rol del usuario
+      relations: ['role'],
     });
 
     if (!user) {
-      console.log('User not found'); // Usuario no encontrado
+      this.logger.warn(`User not found for email=${email}`);
       return null;
     }
 
-    // Comparar contraseñas usando bcrypt
-    const passwordsMatch = await this.comparePasswords(password, user.password);
+    const passwordsMatch = await bcrypt.compare(password, user.password);
     if (!passwordsMatch) {
-      console.log('Passwords do not match'); // Contraseñas no coinciden
+      this.logger.warn(`Invalid password for email=${email}`);
       return null;
     }
 
-    return user; // Usuario encontrado y válido
+    return user;
   }
 
-  // Método para comparar contraseñas ingresadas con las almacenadas
-  async comparePasswords(password: string, hashedPassword: string): Promise<boolean> {
-    return await bcrypt.compare(password, hashedPassword); // Comparar usando bcrypt
-  }
-
-  // Método para encriptar contraseñas al momento de guardar un usuario
-  async hashPassword(password: string): Promise<string> {
-    const salt = await bcrypt.genSalt(); // Generar un salt automático
-    return await bcrypt.hash(password, salt); // Encriptar la contraseña con salting
-  }
-
-  // Generar el token JWT
+  // Generate JWT token
   async login(user: User) {
-    // Payload del token
-    const payload = { id: user.id, email: user.email, role: user.role.name }; // Incluye datos del usuario
-    console.log('Payload:', payload); // Imprimir lo que vamos a firmar
+    const payload = { id: user.id, email: user.email, role: user.role.name };
+
+    // Good evidence log (does not include token)
+    this.logger.log(
+      `Issuing JWT for userId=${user.id} role=${user.role.name} email=${user.email}`,
+    );
+
     return {
-      accessToken: this.jwtService.sign(payload), // Generar y devolver el token
+      accessToken: this.jwtService.sign(payload),
     };
   }
 }

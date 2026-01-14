@@ -1,37 +1,53 @@
-import { Module } from '@nestjs/common';
+import { Module, MiddlewareConsumer, NestModule } from '@nestjs/common';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { AuthModule } from './auth/auth.module';
 import { ThrottlerModule, ThrottlerGuard } from '@nestjs/throttler';
 import { APP_GUARD } from '@nestjs/core';
+import { ConfigModule } from '@nestjs/config';
+
+import { HealthModule } from './healt/healt.module';
+import { RequestLoggerMiddleware } from './common/middleware/request-logger.middleware';
 
 @Module({
   imports: [
+    ConfigModule.forRoot({
+      isGlobal: true,
+    }),
+
     TypeOrmModule.forRoot({
       type: 'postgres',
-      host: 'localhost',
-      port: 5432,
-      username: 'postgres',
-      password: '123',
-      database: 'becas',
+      host: process.env.DB_HOST ?? 'localhost',
+      port: process.env.DB_PORT ? Number(process.env.DB_PORT) : 5432,
+      username: process.env.DB_USER ?? 'postgres',
+      password: process.env.DB_PASS ?? '123',
+      database: process.env.DB_NAME ?? 'becas',
       autoLoadEntities: true,
       synchronize: false,
     }),
+
     AuthModule,
+
     ThrottlerModule.forRoot({
       throttlers: [
         {
-          name: 'default', // Nombre del throttle
-          ttl: 60000, // Ventana de tiempo en milisegundos (1 minuto)
-          limit: 10, // Máximo de solicitudes permitidas por ventana
+          name: 'default',
+          ttl: 60000,
+          limit: 10,
         },
       ],
     }),
+
+    HealthModule,
   ],
   providers: [
     {
       provide: APP_GUARD,
-      useClass: ThrottlerGuard, // Aplicar el guard globalmente en el sistema
+      useClass: ThrottlerGuard,
     },
   ],
 })
-export class AppModule {}
+export class AppModule implements NestModule {
+  configure(consumer: MiddlewareConsumer) {
+    consumer.apply(RequestLoggerMiddleware).forRoutes('*');
+  }
+}

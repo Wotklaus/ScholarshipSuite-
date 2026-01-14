@@ -1,32 +1,62 @@
 "use client";
 
 import React, { useEffect, useMemo, useRef, useState } from "react";
-import { useRouter } from "next/navigation";
 import { Document, Page, pdfjs } from "react-pdf";
 import styles from "./contract-final.module.css";
 
 pdfjs.GlobalWorkerOptions.workerSrc = "/pdf.worker.mjs";
 
-export default function ContractFinalPage() {
-  const router = useRouter();
+type DetectedBankData = {
+  bankName: string;
+  accountType: string;
+  accountNumber: string;
+  identification?: string;
+  holderName?: string;
+};
 
+function extractNestErrorMessage(raw: string): string {
+  // Nest usually returns: { message, error, statusCode }
+  try {
+    const j = JSON.parse(raw);
+    if (typeof j?.message === "string") return j.message;
+    if (Array.isArray(j?.message) && typeof j.message?.[0] === "string") return j.message[0];
+  } catch {
+    // ignore
+  }
+  return raw;
+}
+
+function toFriendlyUploadError(msg: string): string {
+  const m = (msg || "").toLowerCase();
+
+  // Your current backend message:
+  // "La cédula del certificado no coincide con tu usuario."
+  if (m.includes("no coincide") || m.includes("cédula") || m.includes("cedula")) {
+    return (
+      "⚠️ The uploaded bank certificate does not belong to your account.\n" +
+      "Please upload a certificate issued for the scholarship holder (the ID number must match your profile)."
+    );
+  }
+
+  // Multer / file filter type errors
+  if (m.includes("only pdf") || m.includes("pdf")) {
+    return "⚠️ Please upload a PDF file (official bank certificate).";
+  }
+
+  // Fallback
+  return msg || "An unexpected error occurred while processing the certificate.";
+}
+
+export default function ContractFinalPage() {
   const [numPages, setNumPages] = useState<number>(0);
   const [errorMessage, setErrorMessage] = useState("");
-
   const [uploadName, setUploadName] = useState<string | null>(null);
   const [isUploading, setIsUploading] = useState(false);
 
-  const [detected, setDetected] = useState<null | {
-    bankName: string;
-    accountType: string;
-    accountNumber: string;
-    identification?: string;
-    holderName?: string;
-  }>(null);
-
+  const [detected, setDetected] = useState<DetectedBankData | null>(null);
   const [savedOk, setSavedOk] = useState(false);
 
-  // Para forzar reload del PDF cuando ya se guardó bank_account
+  // Force reload of the PDF after saving bank data
   const [pdfNonce, setPdfNonce] = useState<number>(Date.now());
   const DYNAMIC_URL = useMemo(() => `/api/contracts/dynamic?ts=${pdfNonce}`, [pdfNonce]);
 
@@ -70,11 +100,18 @@ export default function ContractFinalPage() {
     const file = e.target.files?.[0];
     if (!file) return;
 
+    // Client-side file validation (avoid sending invalid types)
+    if (file.type !== "application/pdf") {
+      setErrorMessage("⚠️ Please upload a PDF file (official bank certificate).");
+      e.target.value = "";
+      return;
+    }
+
     setUploadName(file.name);
     setIsUploading(true);
 
     try {
-      // 1) Parse en validation-service (via Next route)
+      // 1) Parse in validation-service (via Next route)
       const fd = new FormData();
       fd.append("file", file);
 
@@ -84,28 +121,28 @@ export default function ContractFinalPage() {
       });
 
       if (!parseRes.ok) {
-        const text = await parseRes.text();
-        throw new Error(text || "No se pudo parsear el certificado.");
+        const raw = await parseRes.text();
+        const msg = extractNestErrorMessage(raw);
+        throw new Error(msg || "Unable to parse the certificate.");
       }
 
-      const parsed = await parseRes.json();
+      const parsed = (await parseRes.json()) as DetectedBankData;
 
       if (!parsed?.bankName || !parsed?.accountType || !parsed?.accountNumber) {
-        throw new Error("No se detectaron datos bancarios en el certificado.");
+        throw new Error("No bank account data could be detected in the certificate.");
       }
 
       setDetected(parsed);
 
-      // 2) Guardar en contracts-service (DB + archivo)
+      // 2) Save in contracts-service (DB + file)
       const saveFd = new FormData();
       saveFd.append("file", file);
       saveFd.append("identification", parsed.identification ?? "");
       saveFd.append("bankName", parsed.bankName);
       saveFd.append("accountType", parsed.accountType);
       saveFd.append("accountNumber", parsed.accountNumber);
-      saveFd.append("holderName", parsed.holderName ?? "N/D");
+      saveFd.append("holderName", parsed.holderName ?? "N/A");
 
-      // ✅ AQUÍ ESTABA EL ERROR: PATCH -> POST
       const saveRes = await fetch("/api/contracts/bank-account", {
         method: "POST",
         body: saveFd,
@@ -113,34 +150,18 @@ export default function ContractFinalPage() {
 
       if (!saveRes.ok) {
         const raw = await saveRes.text();
-
-        // Intentar leer JSON típico de Nest: { message, error, statusCode }
-        let msg = raw;
-        try {
-          const j = JSON.parse(raw);
-          if (typeof j?.message === "string") msg = j.message;
-        } catch { }
-
-        // Mensaje “bonito” para el usuario
-        if (msg.includes("no coincide")) {
-          throw new Error(
-            "⚠️ El certificado bancario que subiste no corresponde a tu usuario.\n" +
-            "Recuerda: el certificado debe pertenecer al becario y la cédula debe coincidir."
-          );
-        }
-
-        throw new Error(msg || "No se pudo guardar la información bancaria.");
+        const msg = extractNestErrorMessage(raw);
+        throw new Error(toFriendlyUploadError(msg));
       }
 
       setSavedOk(true);
 
-      // 3) Forzar recarga del PDF dinámico ya con datos bancarios nuevos
+      // 3) Reload the dynamic PDF after bank data is saved
       setPdfNonce(Date.now());
     } catch (err: any) {
       console.error(err);
-      setErrorMessage(
-        typeof err?.message === "string" ? err.message : "Ocurrió un error procesando el certificado."
-      );
+      const msg = typeof err?.message === "string" ? err.message : "";
+      setErrorMessage(toFriendlyUploadError(msg));
     } finally {
       setIsUploading(false);
       e.target.value = "";
@@ -148,72 +169,72 @@ export default function ContractFinalPage() {
   }
 
   const handleContinue = () => {
-    alert("Continuar (OK) — aquí conectas el siguiente paso real");
-    // router.push("/dashboard/student/next-step");
+    alert("Continue (OK) — next step goes here");
   };
 
   return (
     <div className={styles.container}>
-      <h1 className={styles.title}>Contrato generado</h1>
-
       <div className={styles.infoCard}>
         <div className={styles.infoHeader}>
           <div>
-            <h2 className={styles.infoTitle}>Revisión y validación del documento</h2>
+            <h2 className={styles.infoTitle}>Document Review and Validation</h2>
             <p className={styles.infoText}>
-              A continuación se muestra tu contrato generado con la información institucional registrada.
-              Verifica que tus datos personales, facultad, carrera y periodo académico sean correctos antes de continuar.
+              Below you can preview your generated scholarship contract using the institutional data on record.
+              Please verify your personal data, faculty, career, and academic period before continuing.
             </p>
           </div>
-          <span className={styles.badge}>Paso 2 de 2</span>
         </div>
 
         <div className={styles.alertBox}>
           <div className={styles.alertIcon}>!</div>
           <div className={styles.alertBody}>
-            <div className={styles.alertTitle}>Certificado bancario obligatorio</div>
+            <div className={styles.alertTitle}>Bank Certificate Required</div>
             <div className={styles.alertText}>
-              Para completar los campos de <b>banco</b>, <b>tipo de cuenta</b> y <b>número de cuenta</b>, sube tu{" "}
-              <b>certificado bancario oficial</b>. El sistema usará ese documento para extraer y validar los datos.
+              To complete the fields for <b>bank</b>, <b>account type</b>, and <b>account number</b>, please upload your{" "}
+              <b>official bank certificate (PDF)</b>. The system will extract and validate the data automatically.
             </div>
           </div>
         </div>
 
         <div className={styles.actions}>
           <label className={styles.secondaryButton}>
-            {isUploading ? "Procesando..." : "Subir certificado bancario"}
+            {isUploading ? "Processing..." : "Upload certificate (PDF)"}
             <input
               type="file"
-              accept="application/pdf,image/*"
+              accept="application/pdf"
               onChange={handlePickFile}
               className={styles.hiddenInput}
               disabled={isUploading}
             />
           </label>
 
-          <button className={styles.primaryButton} onClick={handleContinue} disabled={!savedOk || isUploading}>
-            Continuar
+          <button
+            className={styles.primaryButton}
+            onClick={handleContinue}
+            disabled={!savedOk || isUploading}
+          >
+            Continue
           </button>
         </div>
 
         {uploadName ? (
           <p className={styles.uploadInfo}>
-            Archivo seleccionado: <b>{uploadName}</b>
+            File: <b>{uploadName}</b>
           </p>
         ) : (
           <p className={styles.uploadHint}>
-            Selecciona un archivo para habilitar <b>“Continuar”</b>.
+            Upload the certificate to enable <b>“Continue”</b>.
           </p>
         )}
 
         {detected && (
           <p style={{ marginTop: 10 }}>
-            ✅ Datos detectados: <b>{detected.bankName}</b> / <b>{detected.accountType}</b> /{" "}
+            Bank details detected: <b>{detected.bankName}</b> / <b>{detected.accountType}</b> /{" "}
             <b>{detected.accountNumber}</b>
           </p>
         )}
 
-        {savedOk && <p style={{ marginTop: 6 }}>✅ Guardado en el sistema. El contrato se actualizó.</p>}
+        {savedOk && <p style={{ marginTop: 6 }}>✅ Saved successfully. Your contract preview was updated.</p>}
 
         {errorMessage && <p className={styles.error}>{errorMessage}</p>}
       </div>
@@ -223,11 +244,11 @@ export default function ContractFinalPage() {
           <Document
             file={DYNAMIC_URL}
             onLoadSuccess={onDocumentLoadSuccess}
-            loading={<p className={styles.pdfLoading}>Generando y cargando el contrato...</p>}
-            error={<p className={styles.pdfError}>No se pudo cargar el contrato.</p>}
+            loading={<p className={styles.pdfLoading}>Generating and loading the contract...</p>}
+            error={<p className={styles.pdfError}>Unable to load the contract preview.</p>}
             onLoadError={(e) => {
               console.error(e);
-              setErrorMessage("No se pudo cargar el contrato dinámico.");
+              setErrorMessage("Unable to load the dynamic contract preview.");
             }}
           >
             {Array.from(new Array(numPages || 0), (_el, index) => (
