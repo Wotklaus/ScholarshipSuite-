@@ -1,8 +1,12 @@
 import { NestFactory } from '@nestjs/core';
-import { AppModule } from './app.module';
+import { EventBusModule } from './event-bus.module';
 
 async function bootstrap() {
-  const app = await NestFactory.create(AppModule);
-  await app.listen(process.env.PORT ?? 3000);
+  console.log("🚀 Event Bus Service booting…");
+  const app = await NestFactory.create(EventBusModule);
+
+  await app.listen(3005);
+  console.log('🚀 Event Bus Service running on http://localhost:3005');
 }
+
 bootstrap();
