@@ -22,6 +22,10 @@ import { BankAccount } from './entities/bank-account.entity';
 import { Bank } from './entities/bank.entity';
 import { BankCertificate } from './entities/bank-certificate.entity';
 import { FinalizeContractDto } from './dtos/finalize-contract.dto';
+import { EventProducerService } from './events/event-producer.service';
+import { Topics } from './events/topics';
+
+
 
 @Injectable()
 export class ContractService {
@@ -51,6 +55,8 @@ export class ContractService {
     private readonly bankCertificateRepo: Repository<BankCertificate>,
 
     private readonly jwtService: JwtService,
+
+    private readonly eventProducer: EventProducerService,
   ) { }
 
   // =========================
@@ -498,6 +504,18 @@ export class ContractService {
     console.log(
       `[contracts] Contract finalized. user=${userId} contractId=${saved.id} status=${saved.status} storedBytes=${pdfBuffer.length} blockchainHash=${(saved as any).blockchainHash}`,
     );
+
+    // ⬅️ NUEVO EVENTO
+    await this.eventProducer.emit(Topics.CONTRACT_GENERATED, {
+      contractId: String(saved.id),
+      userId: String(userId),
+      status: String(saved.status),
+      blockchainHash: String(saved.blockchainHash),
+      storedBytes: pdfBuffer.length,
+      timestamp: Date.now(),
+    });
+
+    console.log('[contracts] 📤 CONTRACT_GENERATED event emitted');
 
     return {
       ok: true,

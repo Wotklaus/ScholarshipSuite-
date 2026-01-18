@@ -15,6 +15,7 @@ import { Career } from './entities/career.entity';
 import { BankAccount } from './entities/bank-account.entity';
 import { Bank } from './entities/bank.entity';
 import { BankCertificate } from './entities/bank-certificate.entity'; // ✅ NUEVO
+import { EventProducerService } from './events/event-producer.service';
 
 @Module({
   imports: [
@@ -42,6 +43,9 @@ import { BankCertificate } from './entities/bank-certificate.entity'; // ✅ NUE
     }),
   ],
   controllers: [ContractController],
-  providers: [ContractService],
+  providers: [
+    ContractService,
+    EventProducerService,
+  ],
 })
 export class ContractModule {}

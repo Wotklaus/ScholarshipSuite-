@@ -6,6 +6,8 @@ import { SignaturesController } from './signatures.controller';
 import { SignaturesService } from './signatures.service';
 import { ContractSignature } from './entities/contract-signature.entity';
 
+import { EventProducerService } from './events/event-producer.service';  // ⬅️ nuevo
+
 @Module({
   imports: [
     TypeOrmModule.forFeature([ContractSignature]),
@@ -21,6 +23,12 @@ import { ContractSignature } from './entities/contract-signature.entity';
     }),
   ],
   controllers: [SignaturesController],
-  providers: [SignaturesService],
+  providers: [
+    SignaturesService,
+    EventProducerService, // ⬅️ agregado
+  ],
+  exports: [
+    EventProducerService, // ⬅️ opcional pero recomendado
+  ],
 })
 export class SignaturesModule {}

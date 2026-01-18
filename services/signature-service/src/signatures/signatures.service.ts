@@ -11,6 +11,11 @@ import { createHash, randomInt } from 'crypto';
 import { ContractSignature } from './entities/contract-signature.entity';
 import { StartSignatureDto } from './dtos/start-signature.dto';
 import { ConfirmSignatureDto } from './dtos/confirm-signature.dto';
+import { EventProducerService } from './events/event-producer.service';
+import { Topics } from './events/topics';
+
+
+
 
 @Injectable()
 export class SignaturesService {
@@ -18,7 +23,8 @@ export class SignaturesService {
     @InjectRepository(ContractSignature)
     private readonly repo: Repository<ContractSignature>,
     private readonly jwtService: JwtService,
-  ) {}
+    private readonly eventProducer: EventProducerService,
+  ) { }
 
   private getUserIdFromToken(token: string): string {
     let payload: any;
@@ -116,6 +122,18 @@ export class SignaturesService {
     console.log(
       `[signatures] Signature confirmed. user=${userId} signatureId=${saved.id} hash=${saved.signatureHash}`,
     );
+
+    // ⬅️ EMITIR EVENTO AQUÍ
+    await this.eventProducer.emit(Topics.SIGNATURE_COMPLETED, {
+      signatureId: saved.id,
+      userId: saved.userId,
+      contractId: saved.contractId,
+      signatureHash: saved.signatureHash,
+      signedAt: saved.signedAt,
+      timestamp: Date.now(),
+    });
+
+    console.log(`[signatures] 📤 SIGNATURE_COMPLETED event emitted`);
 
     return {
       ok: true,
