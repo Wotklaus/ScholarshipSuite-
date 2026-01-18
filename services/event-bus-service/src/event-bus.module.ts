@@ -1,14 +1,14 @@
 import { Module } from '@nestjs/common';
-import { ConfigModule } from '@nestjs/config';
 import { KafkaService } from './kafka.service';
+import { EventProducerService } from './events/producers/event-producer.service';
+import { EventConsumerService } from './events/consumers/event-consumer.service';
 
 @Module({
-  imports: [
-    ConfigModule.forRoot({
-      isGlobal: true,
-    }),
+  providers: [
+    KafkaService,
+    EventProducerService,
+    EventConsumerService,
   ],
-  providers: [KafkaService],
-  exports: [KafkaService],
+  exports: [EventProducerService],
 })
 export class EventBusModule {}

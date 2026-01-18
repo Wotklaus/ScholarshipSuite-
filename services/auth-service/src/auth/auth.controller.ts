@@ -12,6 +12,10 @@ import { AuthService } from './auth.service';
 import { ThrottlerGuard } from '@nestjs/throttler';
 import { ApiBody, ApiOperation, ApiResponse, ApiTags } from '@nestjs/swagger';
 
+// 👇 IMPORTAMOS EL CLIENTE DEL EVENT BUS
+import { EventBusClient } from '../events/event-bus.client';
+import { Topics } from '../events/topics';
+
 @ApiTags('auth')
 @Controller('auth')
 export class AuthController {
@@ -55,12 +59,21 @@ export class AuthController {
 
     res.cookie('access_token', accessToken, {
       httpOnly: true,
-      secure: false, // true in production (https)
+      secure: false,
       sameSite: 'lax',
       path: '/',
     });
 
     this.logger.log(`Login success for email=${email} userId=${user.id}`);
+
+    // 🔥 EMITIR EVENTO A KAFKA
+    const eventBus = new EventBusClient();
+    await eventBus.emitUserLoggedIn({
+      userId: user.id,
+      email: user.email,
+      timestamp: Date.now(),
+    });
+
     return { accessToken };
   }
 }

@@ -1,9 +1,17 @@
-import { Injectable } from "@nestjs/common";
+import { Injectable, Logger } from "@nestjs/common";
 import * as pdfjsLib from "pdfjs-dist/legacy/build/pdf.mjs";
 import { ParseResponseDto } from "./dto/parse-response.dto";
+import { EventProducerService } from "../events/event-producer.service";
+import { Topics } from "../events/topics";
 
 @Injectable()
 export class BankCertificateService {
+  private readonly logger = new Logger(BankCertificateService.name);
+
+  constructor(
+    private readonly eventProducer: EventProducerService, // ⬅️ INYECTAMOS EL PRODUCTOR
+  ) {}
+
   private async extractTextFromPdf(buffer: Buffer): Promise<string> {
     const u8 = new Uint8Array(buffer);
 
@@ -45,7 +53,6 @@ export class BankCertificateService {
     accountNumber?: string;
     accountType?: string;
   }): number {
-    // Simple heuristic: 0.2 per key field (max 1.0)
     const fields = [
       parsed.bankName,
       parsed.identification,
@@ -60,25 +67,21 @@ export class BankCertificateService {
   private parseFromText(text: string): Omit<ParseResponseDto, "confidence"> & { rawText: string } {
     const clean = this.cleanSpaces(text);
 
-    // Bank
     let bankName: string | undefined;
     if (/banco\s+pichincha/i.test(clean)) bankName = "BANCO PICHINCHA";
 
-    // Holder name: "Sr.(a) NAME ... Presente.-"
     let holderName: string | undefined;
     const holderMatch = clean.match(
       /Sr\.\(a\)\s+([A-ZÁÉÍÓÚÑ ]+?)\s+(Presente\.|Tenemos a bien)/i
     );
     if (holderMatch?.[1]) holderName = this.normalizeUpper(holderMatch[1]);
 
-    // Identification: "Identificación No.1725..."
     let identification: string | undefined;
     const idMatch =
       clean.match(/Identificaci[oó]n\s+No\.?\s*([0-9]{10})/i) ||
       clean.match(/Documento\s+de\s+Identificaci[oó]n\s+No\.?\s*([0-9]{10})/i);
     if (idMatch?.[1]) identification = idMatch[1];
 
-    // Account + type: "2206045497 Cuenta de Ahorro"
     let accountNumber: string | undefined;
     let accountType: string | undefined;
 
@@ -102,21 +105,9 @@ export class BankCertificateService {
   }
 
   async parsePdf(buffer: Buffer, options?: { includeRawText?: boolean }): Promise<ParseResponseDto> {
-    console.log(`[validation] Bank certificate parsing started. bytes=${buffer.length}`);
+    this.logger.log(`[validation] Parsing bank certificate… bytes=${buffer.length}`);
 
     const text = await this.extractTextFromPdf(buffer);
-
-    console.log(`[validation] Extracted text length=${text.length}`);
-    console.log(`[validation] Extracted text preview="${text.slice(0, 220)}"`);
-
-    if (!text || text.length < 20) {
-      // Probably scanned image (OCR needed)
-      console.log("[validation] No embedded text found. OCR is required for scanned PDFs.");
-      return {
-        confidence: 0,
-      };
-    }
-
     const parsed = this.parseFromText(text);
     const confidence = this.computeConfidence(parsed);
 
@@ -130,13 +121,15 @@ export class BankCertificateService {
       confidence,
     };
 
-    if (options?.includeRawText) {
-      dto.rawText = parsed.rawText;
-    }
+    if (options?.includeRawText) dto.rawText = parsed.rawText;
 
-    console.log(
-      `[validation] Parsed result bankName=${dto.bankName ?? "N/A"} accountType=${dto.accountType ?? "N/A"} accountNumber=${dto.accountNumber ?? "N/A"} confidence=${dto.confidence}`
-    );
+    // ⬅️ EMITIR EVENTO A KAFKA AQUÍ
+    await this.eventProducer.emit(Topics.BANK_CERTIFICATE_UPLOADED, {
+      certificate: dto,
+      timestamp: Date.now(),
+    });
+
+    this.logger.log(`📤 BANK_CERTIFICATE_UPLOADED event emitted`);
 
     return dto;
   }
