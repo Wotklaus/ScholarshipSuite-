@@ -71,5 +71,16 @@ services:
     volumes:
       - mongo_data:/data/db
 
+  # ------------------------------------
+  # MQTT (Mosquitto)
+  # ------------------------------------
+  mosquitto:
+    image: eclipse-mosquitto
+    container_name: mosquitto
+    ports:
+      - "1883:1883"
+    restart: unless-stopped
+
 volumes:
   mongo_data:
+
