@@ -3,6 +3,8 @@
 import React, { useEffect, useMemo, useRef, useState } from "react";
 import { Document, Page, pdfjs } from "react-pdf";
 import styles from "./contract-final.module.css";
+import mqtt from "mqtt";
+
 
 pdfjs.GlobalWorkerOptions.workerSrc = "/pdf.worker.mjs";
 
@@ -21,7 +23,7 @@ function extractNestErrorMessage(raw: string): string {
     const j = JSON.parse(raw);
     if (typeof j?.message === "string") return j.message;
     if (Array.isArray(j?.message) && typeof j.message?.[0] === "string") return j.message[0];
-  } catch {}
+  } catch { }
   return raw;
 }
 
@@ -48,6 +50,8 @@ export default function ContractFinalPage() {
   // -----------------------------
   const [numPages, setNumPages] = useState<number>(0);
   const [errorMessage, setErrorMessage] = useState("");
+  const [mqttNotification, setMqttNotification] = useState<string | null>(null);
+
 
   const [uploadName, setUploadName] = useState<string | null>(null);
   const [isUploading, setIsUploading] = useState(false);
@@ -60,6 +64,8 @@ export default function ContractFinalPage() {
 
   const pdfWrapRef = useRef<HTMLDivElement | null>(null);
   const [wrapWidth, setWrapWidth] = useState<number>(900);
+  const mqttClientRef = useRef<mqtt.MqttClient | null>(null);
+
 
   useEffect(() => {
     const el = pdfWrapRef.current;
@@ -76,6 +82,47 @@ export default function ContractFinalPage() {
     ro.observe(el);
     return () => ro.disconnect();
   }, []);
+
+  useEffect(() => {
+    if (mqttClientRef.current) return; // ⛔ evita doble conexión
+
+    const client = mqtt.connect("ws://localhost:9001", {
+      reconnectPeriod: 1000,
+      keepalive: 30,
+    });
+
+    mqttClientRef.current = client;
+
+    client.on("connect", () => {
+      console.log("✅ MQTT conectado (frontend)");
+      client.subscribe("dashboard/#");
+    });
+
+    client.on("message", (_topic, payload) => {
+      try {
+        const msg = JSON.parse(payload.toString());
+
+        if (msg.type === "BANK_CERTIFICATE_UPLOADED") {
+          setMqttNotification("✅ Certificado bancario cargado exitosamente");
+        }
+      } catch (err) {
+        console.error("❌ Error parseando MQTT", err);
+      }
+    });
+
+
+    client.on("error", (err) => {
+      console.error("❌ MQTT error", err);
+    });
+
+    return () => {
+      console.log("🧹 MQTT cleanup");
+      mqttClientRef.current?.end(true);
+      mqttClientRef.current = null;
+    };
+  }, []);
+
+
 
   const pageWidth = useMemo(() => {
     const maxDesktop = 820;
@@ -290,6 +337,21 @@ export default function ContractFinalPage() {
   // -----------------------------
   return (
     <div className={styles.container}>
+      {mqttNotification && (
+        <div
+          style={{
+            marginBottom: 16,
+            padding: 12,
+            backgroundColor: "#ecfeff",
+            border: "1px solid #06b6d4",
+            borderRadius: 6,
+            color: "#0f172a",
+            fontWeight: 600,
+          }}
+        >
+          {mqttNotification}
+        </div>
+      )}
       <div className={styles.infoCard}>
         <div className={styles.infoHeader}>
           <div>

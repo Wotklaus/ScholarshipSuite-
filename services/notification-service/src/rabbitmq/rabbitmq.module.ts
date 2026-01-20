@@ -3,9 +3,11 @@ import { RabbitMQModule } from '@golevelup/nestjs-rabbitmq';
 import { RabbitmqService } from './rabbitmq.service';
 import { EmailModule } from '../email/email.module';
 import { RabbitmqConsumer } from './rabbitmq.consumer';
+import { MqttModule } from '../mqtt/mqtt.module';
 
 @Module({
   imports: [
+    MqttModule,
     EmailModule,
 
     RabbitMQModule.forRoot({

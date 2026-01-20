@@ -1,12 +1,16 @@
 import { Injectable, Logger } from '@nestjs/common';
 import { RabbitSubscribe } from '@golevelup/nestjs-rabbitmq';
 import { EmailService } from '../email/email.service';
+import { MqttService } from '../mqtt/mqtt.service';
+
 
 @Injectable()
 export class RabbitmqConsumer {
   private readonly logger = new Logger(RabbitmqConsumer.name);
 
-  constructor(private readonly email: EmailService) {}
+  constructor(private readonly email: EmailService,
+    private readonly mqtt: MqttService,
+  ) { }
 
   // LOGIN EXITOSO
   @RabbitSubscribe({
@@ -24,19 +28,28 @@ export class RabbitmqConsumer {
     );
   }
 
-  // CONTRATO GENERADO
+  // CERTIFICADO BANCARIO SUBIDO
   @RabbitSubscribe({
     exchange: 'notifications',
-    routingKey: 'notifications.contract.generated',
-    queue: 'notifications_contract_generated_queue',
+    routingKey: 'notifications.bank_certificate_uploaded',
+    queue: 'notifications_bank_certificate_uploaded_queue',
   })
-  async handleContractGenerated(msg: any) {
-    this.logger.log(`📥 [RMQ] CONTRACT GENERATED recibido → ${JSON.stringify(msg)}`);
-
-    await this.email.send(
-      msg.email,
-      'Contrato generado',
-      `<p>Tu contrato ha sido firmado y almacenado correctamente.</p>`
+  async handleBankCertificateUploaded(msg: any) {
+    this.logger.log(
+      `📥 [RMQ] BANK_CERTIFICATE_UPLOADED → ${JSON.stringify(msg)}`
     );
+
+    const payload = {
+      type: 'BANK_CERTIFICATE_UPLOADED',
+      userId: msg.userId,
+      message: 'Certificado bancario cargado exitosamente',
+      timestamp: Date.now(),
+    };
+
+    const topic = `dashboard/notifications`;
+
+    this.mqtt.publish(topic, payload);
   }
+
+
 }
