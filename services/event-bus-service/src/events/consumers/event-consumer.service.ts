@@ -13,7 +13,7 @@ export class EventConsumerService implements OnModuleInit {
   constructor(
     private readonly kafka: KafkaService,
     private readonly rabbit: RabbitmqPublisher,
-  ) {}
+  ) { }
 
   async onModuleInit() {
     this.logger.log('Consumer initialized. Subscribing to topics...');
@@ -30,9 +30,24 @@ export class EventConsumerService implements OnModuleInit {
     // ==============================
     // BANK_CERTIFICATE (solo log)
     // ==============================
-    await this.kafka.subscribeToTopic(Topics.BANK_CERTIFICATE_UPLOADED, (msg) => {
-      this.logger.log(`Received BANK_CERTIFICATE_UPLOADED → ${JSON.stringify(msg)}`);
-    });
+    await this.kafka.subscribeToTopic(
+      Topics.BANK_CERTIFICATE_UPLOADED,
+      async (msg) => {
+        this.logger.log(
+          `Received BANK_CERTIFICATE_UPLOADED → ${JSON.stringify(msg)}`
+        );
+
+        await this.rabbit.publish(
+          'notifications.bank_certificate_uploaded',
+          {
+            userId: msg.userId ?? msg.certificate?.userId,
+            certificateId: msg.certificateId ?? msg.certificate?.id,
+            timestamp: Date.now(),
+          }
+        );
+      },
+    );
+
 
     // ==============================
     // SIGNATURE (solo log)

@@ -4,11 +4,9 @@
   "scripts": {
     "build": "turbo run build",
     "dev": "turbo run dev",
-
     "dev:services": "turbo run dev --filter=services/*",
     "dev:web": "turbo run dev --filter=apps/web",
     "dev:all": "turbo run dev",
-
     "lint": "turbo run lint",
     "format": "prettier --write \"**/*.{ts,tsx,md}\"",
     "check-types": "turbo run check-types"
@@ -28,5 +26,8 @@
     "packages/*",
     "services/*",
     "gateway"
-  ]
+  ],
+  "dependencies": {
+    "rxjs": "^7.8.1"
+  }
 }

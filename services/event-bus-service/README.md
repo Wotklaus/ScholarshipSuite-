@@ -26,6 +26,8 @@ Instead, it manages **publishing and consuming domain events** that other micros
   - **Producers** publish events to Kafka topics
   - **Consumers** subscribe to events and react asynchronously
   - **Event Bus** provides the shared infrastructure to facilitate communication
+  - Events are forwarded to RabbitMQ when notification delivery is required
+  - MQTT is used downstream to notify frontend clients in real time
 
 ### Design Principles
 - **Loose Coupling** – microservices do not directly call each other  
@@ -44,6 +46,9 @@ It avoids business logic and focuses on reliable event delivery only.
 - **Language**: TypeScript  
 - **Message Broker**: Apache Kafka  
 - **Client Library**: kafkajs  
+- **Routing Broker**: RabbitMQ  
+- **Real-Time Messaging**: MQTT (Mosquitto)  
+- **Kafka Client**: kafkajs  
 - **Runtime**: Node.js  
 - **API Documentation**: http://localhost:3005/docs
 
