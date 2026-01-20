@@ -1,10 +1,15 @@
 import { Module } from '@nestjs/common';
-import { AppController } from './app.controller';
-import { AppService } from './app.service';
+import { ConfigModule } from '@nestjs/config';
+import { RedisModule } from './redis/redis.module';
+import { AnalyticsModule } from './analytics/analytics.module';
+import { KafkaModule } from './kafka/kafka.module';
 
 @Module({
-  imports: [],
-  controllers: [AppController],
-  providers: [AppService],
+  imports: [
+    ConfigModule.forRoot({ isGlobal: true }),
+    RedisModule,
+    AnalyticsModule,
+    KafkaModule, // 👈 AQUÍ
+  ],
 })
 export class AppModule {}
