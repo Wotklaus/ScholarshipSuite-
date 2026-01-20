@@ -1,0 +1,186 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+
+<style>
+@page {
+  size: A4;
+  margin: 2cm;
+}
+
+body {
+  font-family: Calibri, sans-serif;
+  font-size: 9.5pt;
+  line-height: 1.15;
+  text-align: justify;
+}
+
+p {
+  margin: 0 0 8.3pt 0
+}
+
+.center {
+  text-align: center;
+  text-indent: 0;
+}
+
+.right {
+  text-align: right;
+  font-weight: bold;
+  text-indent: 0;
+}
+
+.bold {
+  font-weight: bold;
+}
+
+.signature {
+  margin-top: 100px;
+  display: flex;
+  justify-content: space-between;
+  text-indent: 0;
+}
+
+.signature p {
+  margin-bottom: 6pt; /* separa líneas de firma */
+}
+
+
+.signature div {
+  width: 45%;
+}
+</style>
+</head>
+
+<body>
+
+<!-- LOGO -->
+<div class="center">
+  <img src="{{logo}}" style="height:70px; display:block; margin:0 auto;" />
+
+</div>
+
+<p class="center bold">
+UNIVERSIDAD CENTRAL DEL ECUADOR<br>
+DIRECCIÓN DE BIENESTAR UNIVERSITARIO<br>
+CONTRATO DE BECA POR EXCELENCIA ACADÉMICA<br>
+ESTUDIANTE REGULAR – PERIODO ACADÉMICO: {{academic_period}}
+</p>
+
+<p class="right">
+N° {{contract_number}}
+</p>
+
+<p>
+A la celebración del presente Contrato de Beca, comparecen por una parte el
+Dr. Silvio Toscano Vizcaíno, Ph.D, Vicerrector Administrativo y Financiero, en
+representación de la Universidad Central del Ecuador, con delegación expedida
+mediante Resolución No. R-016-2024, de fecha 10 de junio de 2024, suscrita por el
+Dr. Patricio Espinosa del Pozo MD. Ph.D, Rector de la Universidad Central del
+Ecuador, a quien en adelante se denominará LA UNIVERSIDAD; y, por otra parte,
+el señor/a {{student_full_name}}, por sus propios derechos, a quien en adelante
+se denominará EL BECARIO. Los comparecientes son legalmente capaces para
+obligarse, por lo cual se comprometen al tenor de las siguientes cláusulas:
+</p>
+
+<p>
+  <strong>PRIMERA. - ANTECEDENTES. -</strong>
+La Universidad Central del Ecuador, es una institución de Derecho Público y
+forma parte del Sistema de Educación Superior, la misma que en cumplimiento con
+lo dispuesto en el Art. 77 y 78 de la Ley Orgánica de Educación Superior, ha
+implementado un programa de becas para los/as estudiantes del tercer nivel.
+</p>
+
+<p>
+La Secretaría Nacional de Educación Superior, Ciencia y Tecnología e Innovación –
+SENESCYT – en su Manual de Usuario SNIESE define beca como: “aporte económico,
+no reembolsable intransferible que recibe un estudiante para iniciar o continuar
+estudios de educación superior, éstas pueden asignar de manera total o completa
+(100%) o parcial (menos del 100%) de acuerdo a los siguientes criterios u otros:
+excelencia académica, personas con discapacidad, nivel social económico,
+minorías étnicas, extranjeros, otros. En ningún caso se podrá devengar la beca
+con trabajo”.
+</p>
+
+<p>
+El Honorable Consejo Universitario de la Universidad Central del Ecuador, en
+sesión ordinaria de 4 de octubre de 2022, resuelve la aplicación a la Resolución
+RHCU.SO.28 No. 0279-2022, que señala: “…Disminuir el monto de las becas
+estudiantiles de USD 600,00 a USD 400,00…Destinar el 65% de las becas para
+excelencia académica y el 35% por vulnerabilidad”.
+</p>
+
+
+
+<p>
+  <strong>SEGUNDA. - OBJETO. -</strong>
+Con los antecedentes establecidos en la cláusula anterior, LA UNIVERSIDAD,
+otorga a favor del señor/a {{student_full_name}}, portador de la Cédula de
+Ciudadanía o Pasaporte N° {{student_id}}, alumno/a de la Facultad de
+{{faculty}}, Carrera de {{career}}, el valor de CUATROCIENTOS DÓLARES de los
+Estados Unidos de América, para el ciclo académico {{academic_period}}, con
+cargo a la partida presupuestaria 82 00 000 004 580208 1701 001 0000 0000,
+“Becas y Ayudas Económicas”, del vigente presupuesto de la Universidad Central,
+conforme consta en la certificación Nro. {{certification_number}}, la misma que
+se le otorga en razón de lo dispuesto en el Art. 3 del Reglamento de Becas para
+Estudiantes de Tercer Nivel.
+</p>
+
+<p>
+La Transferencia se realizará a la Cta AHORROS N° {{bank_account}} de
+{{bank_name}}, perteneciente al becario.
+</p>
+
+
+
+<p>
+  <strong>TERCERA. - INEXISTENCIA DE RELACIÓN LABORAL. -</strong>
+En virtud de la naturaleza del presente contrato, se deja en claro que no se
+establece ningún vínculo laboral entre la Universidad y El Becario.
+</p>
+
+
+
+<p>
+  <strong>CUARTA.- CONTROVERSIAS. -</strong>
+En caso de surgir controversias, las partes buscarán una fórmula de arreglo, con
+apego a las normas y disposiciones vigentes.
+</p>
+
+
+
+<p>
+  <strong>QUINTA.- DECLARACION -</strong>
+El becario declara que la información y documentos proporcionados son verídicos
+por lo que autoriza su verificación; y, en caso de detectarse alguna falsedad se
+somete al proceso legal respectivo; igualmente declara que no ha recibido otra
+beca de parte de la UCE ni de otra institución del Estado en el mismo periodo
+académico.
+</p>
+
+
+
+<p>
+  <strong>SEXTA.- ACEPTACIÓN. -</strong>
+Las partes manifiestan su expresa aceptación al contenido íntegro del presente
+instrumento y para constancia firman un ejemplar. Dado en la ciudad de Quito,
+DM, {{contract_date}}.
+</p>
+
+<div class="signature">
+  <div>
+    <p>Dr. Silvio Toscano Vizcaíno, Ph.D</p>
+    <p><strong>VICERRECTOR ADMINISTRATIVO Y FINANCIERO</strong></p>
+    <p>UNIVERSIDAD CENTRAL DEL ECUADOR</p>
+  </div>
+
+  <div>
+    <p>{{student_full_name}}</p>
+    <p><strong>BECARIO</strong></p>
+    <p>C.C. {{student_id}}</p>
+  </div>
+</div>
+
+</body>
+</html>

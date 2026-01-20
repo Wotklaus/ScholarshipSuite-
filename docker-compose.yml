@@ -1,0 +1,71 @@
+services:
+  postgres:
+    image: postgres:16-alpine
+    container_name: scholarship_postgres
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: "123"
+      POSTGRES_DB: becas
+    ports:
+      - "5432:5432"
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+
+  auth-service:
+    build:
+      context: ./services/auth-service
+    container_name: auth-service
+    env_file:
+      - ./services/auth-service/.env
+    depends_on:
+      - postgres
+    ports:
+      - "3000:3000"
+
+  contracts-service:
+    build:
+      context: ./services/contracts-service
+    container_name: contracts-service
+    env_file:
+      - ./services/contracts-service/.env
+    depends_on:
+      - postgres
+    ports:
+      - "3002:3002"
+    volumes:
+      # para que lo que guardas en /uploads no se pierda
+      - contracts_uploads:/app/uploads
+
+  validation-service:
+    build:
+      context: ./services/validation-service
+    container_name: validation-service
+    ports:
+      - "3003:3003"
+
+  signature-service:
+    build:
+      context: ./services/signature-service
+    container_name: signature-service
+    env_file:
+      - ./services/signature-service/.env
+    depends_on:
+      - postgres
+    ports:
+      - "3004:3004"
+
+  api-gateway:
+    build:
+      context: ./gateway
+    container_name: api-gateway
+    depends_on:
+      - auth-service
+      - contracts-service
+      - validation-service
+      - signature-service
+    ports:
+      - "8080:8080"
+
+volumes:
+  pgdata:
+  contracts_uploads:

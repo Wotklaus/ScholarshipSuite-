@@ -1,0 +1,106 @@
+/* Sidebar principal */
+.sidebar {
+  width: 250px;
+  min-height: 100vh;
+  background: #1c4a70;
+  color: #ffffff;
+  left: 0;
+  top: 0;
+  display: flex;
+  flex-direction: column;
+  font-family: 'Poppins', Arial, sans-serif;
+}
+
+/* Logo */
+.sidebarLogo {
+  font-size: 1.5rem;
+  font-weight: 600;
+  padding: 1.3rem 1.2rem;
+  color: #ffffff;
+  display: flex;
+  align-items: flex-start;
+  justify-content: center;
+}
+
+/* Encabezados */
+.sidebarHeading {
+  font-size: 0.90rem;
+  font-weight: bold;
+  text-transform: uppercase;
+  color: #ffffff;
+  margin: 1.2rem 0 0.7rem;
+  margin-left: 0.5rem;
+}
+
+/* Links principales */
+.sidebarLink {
+  color: #ffffff;
+  font-size: 1rem;
+  border-radius: 4px;
+  text-decoration: none;
+  transition: all 0.2s ease-in-out;
+  padding: 0.7rem 0.7rem;
+}
+
+.sidebarLink:hover {
+  background: #346392;
+  color: #ffffff;
+}
+
+/* Botones de colapsables */
+.collapsible {
+  display: flex;
+  align-items: center;
+  justify-content: start;
+  background: none;
+  border: none;
+  color: #ffffff;
+  cursor: pointer;
+  padding: 0.7rem 0.7rem;
+  font-size: 1rem;
+}
+
+.collapsible:hover {
+  background: #346392;
+}
+
+/* Submenús en columna */
+.sidebarNested {
+  display: flex;
+  flex-direction: column;
+  margin-left: 1.5rem;
+  border-left: 2px solid #3a749b;
+  padding-left: 0.5rem;
+}
+
+/* Estilos específicos para submenús de Ctas Bancarias y Firmas */
+.sidebarNested a {
+  color: #ebe1e1;
+  font-size: 0.9rem;
+  padding: 0.5rem 0;
+  text-decoration: none;
+}
+
+.sidebarNested a:hover {
+  color: #ffffff;
+  background-color: #346392;
+  border-radius: 4px;
+}
+
+/* Footer fijo */
+.sidebarFooter {
+  margin-top: auto;
+  padding: 1.2rem;
+  border-top: 1px solid #2f668d;
+}
+
+.sidebarLogout {
+  color: #e4dbdb;
+  font-size: 1.1rem;
+  text-decoration: none;
+  font-weight: 500;
+}
+
+.sidebarLogout:hover {
+  color: #ffffff;
+}

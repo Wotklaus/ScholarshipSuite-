@@ -1,0 +1,85 @@
+/* Contenedor Principal */
+.container {
+  display: flex;
+  justify-content: center;
+  align-items: center; /* Centra vertical y horizontal */
+  height: 100vh; /* Toda la pantalla */
+  background-color: #f4f5f6; /* Fondo limpio */
+}
+
+/* Contenido Principal */
+.content {
+  display: flex;
+  width: 70%; /* Reduce ancho del cuadro */
+  max-width: 750px; /* Limita el ancho máximo */
+  height: 400px; /* Reduce el alto del cuadro */
+  box-shadow: 0 8px 16px rgba(0, 0, 0, 0.1); /* Sombra profesional */
+  border-radius: 8px; /* Bordes suaves */
+  overflow: hidden;
+  border: #d1d0d0 1px solid;
+}
+
+/* Sección izquierda */
+.leftSection {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  padding: 1.5rem 2rem; /* Márgenes más compactos */
+  background-color: #ffffff; /* Fondo blanco puro */
+}
+
+.title {
+  font-size: 1.7rem; /* Hacemos el título un poco más pequeño */
+  font-weight: bold;
+  color: #3c395a;
+  margin-bottom: 1rem;
+  text-align: center;
+}
+
+.form {
+  display: flex;
+  flex-direction: column;
+  gap: 0.9rem; /* Reduce espacio entre campos */
+}
+
+.input {
+  padding: 0.8rem; /* Reduce el padding interno */
+  font-size: 0.9rem;
+  border: 1px solid #bfb9b9;
+  border-radius: 6px;
+}
+
+.input:focus {
+  outline: none;
+  border-color: #999a9b;
+  box-shadow: 0 0 5px rgba(112, 113, 114, 0.5);
+}
+
+.button {
+  padding: 0.8rem; /* Reduce el tamaño del botón */
+  background-color: #335c7e;
+  color: white;
+  font-size: 0.95rem;
+  font-weight: bold;
+  border-radius: 5px;
+  cursor: pointer;
+  border: none;
+}
+
+
+
+/* Sección derecha */
+.rightSection {
+  flex: 1;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  background: linear-gradient(to bottom right, #ffffff, #ffffff); /* Fondo degradado */
+}
+
+.image {
+  width: 100%; /* Ajusta el tamaño de la imagen */
+  height: auto;
+  object-fit: contain; /* Mantiene proporciones perfectas */
+}

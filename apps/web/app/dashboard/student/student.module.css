@@ -1,0 +1,23 @@
+.content {
+  flex: 1; /* El contenido ocupa todo el espacio disponible */
+  padding: 2rem;
+  background-color: #f8f9fa;
+}
+
+.title {
+  font-size: 2rem;
+  margin-bottom: 1.5rem;
+}
+
+.cards {
+  display: flex;
+  gap: 2rem;
+}
+
+.card {
+  flex: 1;
+  padding: 1rem;
+  border-radius: 8px;
+  background-color: #007bff;
+  color: white;
+}

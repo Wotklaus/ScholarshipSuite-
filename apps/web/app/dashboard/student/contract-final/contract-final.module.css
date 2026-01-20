@@ -1,0 +1,210 @@
+/* =========================================================
+   1) CONTENEDOR PRINCIPAL
+   - Ajusta el padding general del contenido
+   ========================================================= */
+.container {
+  padding: 28px 30px;
+}
+
+
+
+/* =========================================================
+   3) CARD SUPERIOR (INFO)
+   - Aquí controlas el estilo “similar a vista anterior”
+   ========================================================= */
+.infoCard {
+  background: #fff;
+  border: 1px solid rgba(15, 23, 42, 0.08);
+  border-radius: 6px;
+  padding: 16px;
+  box-shadow: 0 10px 30px rgba(15, 23, 42, 0.06);
+  width: 98%; /* ⇦ si quieres full ancho pon 100% */
+}
+
+.infoHeader {
+  display: flex;
+  justify-content: space-between;
+  gap: 14px;
+  align-items: flex-start;
+}
+
+.infoTitle {
+  margin: 0 0 6px 0;
+  font-size: 25px;
+  font-weight: 790;
+}
+
+.infoText {
+  margin: 0;
+  font-size: 14px;
+  line-height: 1.45;
+  opacity: 0.95;
+}
+
+
+
+/* =========================================================
+   4) ALERTA NARANJA (IMPORTANTE)
+   - Ajusta aquí el “fuerte” (colores y borde)
+   ========================================================= */
+.alertBox {
+  margin-top: 12px;
+  display: flex;
+  gap: 10px;
+  border-radius: 12px;
+  border: 1px solid #cecbc7;
+  background: #f8ffe0;
+  padding: 12px 12px;
+}
+
+.alertIcon {
+  width: 28px;
+  height: 28px;
+  border-radius: 999px;
+  background: #88cf15;
+  color: #fff;
+  display: grid;
+  place-items: center;
+  font-weight: 900;
+}
+
+.alertBody {
+  flex: 1;
+}
+
+.alertTitle {
+  font-weight: 900;
+  font-size: 13px;
+  margin-bottom: 2px;
+}
+
+.alertText {
+  font-size: 13px;
+  line-height: 1.35;
+}
+
+/* =========================================================
+   5) ACCIONES (BOTONES)
+   - primaryButton: acción principal
+   - secondaryButton: subir archivo
+   ========================================================= */
+.actions {
+  margin-top: 14px;
+  display: flex;
+  gap: 12px;
+  align-items: center;
+  flex-wrap: wrap;
+}
+
+.primaryButton {
+  background: #18aeb6;
+  color: #fff;
+  border: none;
+  border-radius: 6px;
+  padding: 10px 14px;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.primaryButton:disabled {
+  opacity: 0.65;
+  cursor: not-allowed;
+}
+
+.secondaryButton {
+  background: #2c79a8;
+  color: #fff;
+  border: none;
+  border-radius: 6px;
+  padding: 10px 14px;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.hiddenInput {
+  display: none;
+}
+
+/* =========================================================
+   6) ESTADO DE ARCHIVO (texto debajo de botones)
+   ========================================================= */
+.uploadInfo {
+  margin: 10px 0 0 0;
+  font-size: 13px;
+}
+
+.uploadHint {
+  margin: 10px 0 0 0;
+  font-size: 13px;
+  opacity: 0.75;
+}
+
+/* Errores */
+.error {
+  margin-top: 10px;
+  color: #e12508;
+  font-weight: 200;
+  font-size: 14px;
+}
+
+/* =========================================================
+   7) SECCIÓN PDF
+   - pdfSection controla ancho y separación
+   - pdfWrap es el “marco” del PDF (centrado y sin overflow)
+   ========================================================= */
+.pdfSection {
+  margin-top: 14px;
+  width: 98%; /* ⇦ si quieres full ancho, pon 100% */
+}
+
+/* Marco del PDF */
+.pdfWrap {
+  background: #f0efef;
+  border: 1px solid rgba(15, 23, 42, 0.08);
+  border-radius: 12px;
+  box-shadow: 0 10px 30px rgba(15, 23, 42, 0.06);
+  padding: 12px;
+
+  /* ✅ clave para que el PDF no “rompa” el layout */
+  min-width: 0;
+
+  /* ✅ aquí decides si hay scroll interno o no:
+     - hidden: se ve limpio pero dependerá del alto de la página
+     - auto: permite scroll dentro del panel (si lo prefieres)
+  */
+  overflow: hidden;
+}
+
+/* Cada página centrada (para que no quede pegada a la izquierda) */
+.pageRow {
+  display: flex;
+  justify-content: center;
+  padding: 6px 0;
+}
+
+/* Mensajes del PDF */
+.pdfLoading {
+  font-size: 13px;
+  opacity: 0.75;
+}
+
+.pdfError {
+  font-size: 13px;
+  color: #b91c1c;
+  font-weight: 800;
+}
+
+/* =========================================================
+   8) RESPONSIVE
+   - Ajustes para pantallas pequeñas
+   ========================================================= */
+@media (max-width: 900px) {
+  .infoCard,
+  .pdfSection {
+    width: 100%;
+  }
+
+  .title {
+    font-size: 26px;
+  }
+}
