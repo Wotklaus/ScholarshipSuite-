@@ -1,9 +1,48 @@
-version: "3.9"
-
 services:
-  # ------------------------------------
+  # -------------------------------
+  # POSTGRES
+  # -------------------------------
+  postgres:
+    image: postgres:16-alpine
+    container_name: postgres
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: "123"
+      POSTGRES_DB: becas
+    ports:
+      - "5432:5432"
+    volumes:
+      - pg_data:/var/lib/postgresql/data
+    networks:
+      - scholarship-net
+
+  # -------------------------------
+  # REDIS
+  # -------------------------------
+  redis:
+    image: redis:7
+    container_name: redis
+    ports:
+      - "6379:6379"
+    networks:
+      - scholarship-net
+
+  # -------------------------------
+  # MONGO
+  # -------------------------------
+  mongo:
+    image: mongo:6
+    container_name: mongo
+    ports:
+      - "27017:27017"
+    volumes:
+      - mongo_data:/data/db
+    networks:
+      - scholarship-net
+
+  # -------------------------------
   # ZOOKEEPER
-  # ------------------------------------
+  # -------------------------------
   zookeeper:
     image: confluentinc/cp-zookeeper:7.5.0
     container_name: zookeeper
@@ -12,79 +51,65 @@ services:
       ZOOKEEPER_TICK_TIME: 2000
     ports:
       - "2181:2181"
+    networks:
+      - scholarship-net
 
-  # ------------------------------------
+  # -------------------------------
   # KAFKA
-  # ------------------------------------
+  # -------------------------------
   kafka:
     image: confluentinc/cp-kafka:7.5.0
     container_name: kafka
     depends_on:
-      zookeeper:
-        condition: service_started
+      - zookeeper
     environment:
       KAFKA_BROKER_ID: 1
-      KAFKA_ZOOKEEPER_CONNECT: "zookeeper:2181"
+      KAFKA_ZOOKEEPER_CONNECT: zookeeper:2181
 
-      # FIX PARA WINDOWS + DOCKER
       KAFKA_LISTENERS: INTERNAL://0.0.0.0:9093,EXTERNAL://0.0.0.0:9092
       KAFKA_ADVERTISED_LISTENERS: INTERNAL://kafka:9093,EXTERNAL://localhost:9092
       KAFKA_LISTENER_SECURITY_PROTOCOL_MAP: INTERNAL:PLAINTEXT,EXTERNAL:PLAINTEXT
       KAFKA_INTER_BROKER_LISTENER_NAME: INTERNAL
-
       KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR: 1
-
     ports:
       - "9092:9092"
+    networks:
+      - scholarship-net
 
-  # ------------------------------------
-  # RABBITMQ (con panel web)
-  # ------------------------------------
+  # -------------------------------
+  # RABBITMQ
+  # -------------------------------
   rabbitmq:
     image: rabbitmq:3-management
     container_name: rabbitmq
-    ports:
-      - "5672:5672"
-      - "15672:15672"
     environment:
       RABBITMQ_DEFAULT_USER: admin
       RABBITMQ_DEFAULT_PASS: admin
-
-  # ------------------------------------
-  # REDIS
-  # ------------------------------------
-  redis:
-    image: redis:7
-    container_name: redis
     ports:
-      - "6379:6379"
+      - "5672:5672"
+      - "15672:15672"
+    networks:
+      - scholarship-net
 
-  # ------------------------------------
-  # MONGO
-  # ------------------------------------
-  mongo:
-    image: mongo:6
-    container_name: mongo
-    restart: always
-    ports:
-      - "27017:27017"
-    volumes:
-      - mongo_data:/data/db
-
-  # ------------------------------------
-  # MQTT (Mosquitto)
-  # ------------------------------------
+  # -------------------------------
+  # MQTT (MOSQUITTO)
+  # -------------------------------
   mosquitto:
     image: eclipse-mosquitto
     container_name: mosquitto
     ports:
-      - "1883:1883" # backend
-      - "9001:9001" # frontend (websocket)
+      - "1883:1883"
+      - "9001:9001"
     volumes:
       - ./mosquitto.conf:/mosquitto/config/mosquitto.conf
-    restart: unless-stopped
+    networks:
+      - scholarship-net
 
 volumes:
+  pg_data:
   mongo_data:
 
+networks:
+  scholarship-net:
+    name: scholarship-net
 
