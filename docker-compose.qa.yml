@@ -1,0 +1,101 @@
+services:
+  auth-service:
+    image: wotklaus86682/auth-service:qa
+    container_name: auth-service
+    environment:
+      DATABASE_URL: postgres://postgres:123@postgres:5432/becas
+      JWT_SECRET: MiClaveDeSeguridadSuperSecreta
+      KAFKA_BROKER: kafka:9093
+    ports:
+      - "3000:3000"
+    networks: [scholarship-net]
+
+  contracts-service:
+    image: wotklaus86682/contracts-service:qa
+    container_name: contracts-service
+    environment:
+      DATABASE_URL: postgres://postgres:123@postgres:5432/becas
+      JWT_SECRET: MiClaveDeSeguridadSuperSecreta
+      KAFKA_BROKER: kafka:9093
+    ports:
+      - "3002:3002"
+    networks: [scholarship-net]
+
+  signature-service:
+    image: wotklaus86682/signature-service:qa
+    container_name: signature-service
+    environment:
+      DATABASE_URL: postgres://postgres:123@postgres:5432/becas
+      JWT_SECRET: MiClaveDeSeguridadSuperSecreta
+      KAFKA_BROKER: kafka:9093
+    ports:
+      - "3004:3004"
+    networks: [scholarship-net]
+
+  validation-service:
+    image: wotklaus86682/validation-service:qa
+    container_name: validation-service
+    environment:
+      MONGO_URI: mongodb://mongo:27017/validation
+      KAFKA_BROKER: kafka:9093
+    ports:
+      - "3003:3003"
+    networks: [scholarship-net]
+
+  analytics-service:
+    image: wotklaus86682/analytics-service:qa
+    container_name: analytics-service
+    environment:
+      REDIS_HOST: redis
+      REDIS_PORT: 6379
+      KAFKA_BROKER: kafka:9093
+    ports:
+      - "3009:3009"
+    networks: [scholarship-net]
+
+  audit-service:
+    image: wotklaus86682/audit-service:qa
+    container_name: audit-service
+    environment:
+      MONGO_URI: mongodb://mongo:27017/audit_logs
+      KAFKA_BROKER: kafka:9093
+    ports:
+      - "3008:3008"
+    networks: [scholarship-net]
+
+  event-bus-service:
+    image: wotklaus86682/event-bus-service:qa
+    container_name: event-bus-service
+    environment:
+      KAFKA_BROKER: kafka:9093
+      RABBITMQ_URL: amqp://admin:admin@rabbitmq:5672
+    ports:
+      - "3005:3005"
+    networks: [scholarship-net]
+
+  notification-service:
+    image: wotklaus86682/notification-service:qa
+    container_name: notification-service
+    environment:
+      RABBITMQ_URL: amqp://admin:admin@rabbitmq:5672
+      MQTT_BROKER: mosquitto
+      MQTT_PORT: 1883
+    ports:
+      - "3007:3007"
+    networks: [scholarship-net]
+
+  api-gateway:
+    image: wotklaus86682/api-gateway:qa
+    container_name: api-gateway
+    environment:
+      AUTH_SERVICE_URL: http://auth-service:3000
+      CONTRACTS_SERVICE_URL: http://contracts-service:3002
+      VALIDATION_SERVICE_URL: http://validation-service:3003
+      SIGNATURE_SERVICE_URL: http://signature-service:3004
+    ports:
+      - "8080:8080"
+    networks: [scholarship-net]
+
+networks:
+  scholarship-net:
+    external: true
