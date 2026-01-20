@@ -7,7 +7,7 @@
   "license": "UNLICENSED",
   "scripts": {
     "build": "nest build",
-    "dev": "nest start --watch",  
+    "dev": "nest start --watch",
     "format": "prettier --write \"src/**/*.ts\" \"test/**/*.ts\"",
     "start": "nest start",
     "start:dev": "nest start --watch",
@@ -23,9 +23,11 @@
   "dependencies": {
     "@golevelup/nestjs-rabbitmq": "^7.1.1",
     "@nestjs/common": "^11.0.1",
+    "@nestjs/config": "^4.0.2",
     "@nestjs/core": "^11.0.1",
     "@nestjs/microservices": "^11.1.12",
     "@nestjs/platform-express": "^11.0.1",
+    "@nestjs/swagger": "^11.2.5",
     "amqplib": "^0.10.9",
     "mqtt": "^5.14.1",
     "nodemailer": "^7.0.12",
