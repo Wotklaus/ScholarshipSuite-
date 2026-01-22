@@ -1,16 +1,29 @@
 FROM node:18-alpine
 
+# ===============================
+# Dependencias para Puppeteer + Chromium
+# ===============================
+RUN apk add --no-cache \
+  chromium \
+  nss \
+  freetype \
+  harfbuzz \
+  ca-certificates \
+  ttf-freefont \
+  udev \
+  bash
+
+# ⚠️ PATH CORRECTO EN ALPINE
+ENV PUPPETEER_EXECUTABLE_PATH=/usr/bin/chromium
+ENV PUPPETEER_SKIP_CHROMIUM_DOWNLOAD=true
+
 WORKDIR /app
 
-# Solo copiamos package.json para instalar deps
 COPY package*.json ./
 RUN npm install
 
-# Copiamos el resto del proyecto
 COPY . .
 
-# Compilamos NestJS
 RUN npm run build
 
-# El micro ya sabe qué puerto usar desde main.ts → no definimos nada aquí
 CMD ["node", "dist/main.js"]

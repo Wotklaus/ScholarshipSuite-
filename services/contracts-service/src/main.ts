@@ -20,12 +20,7 @@ async function bootstrap() {
   );
 
   // ✅ CORS for Next.js
-  app.enableCors({
-    origin: 'http://localhost:3001',
-    credentials: true,
-    methods: 'GET,HEAD,POST,PUT,DELETE,OPTIONS',
-    allowedHeaders: 'Content-Type, Authorization',
-  });
+ 
 
   // ✅ Swagger
   const config = new DocumentBuilder()

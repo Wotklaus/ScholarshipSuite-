@@ -1,4 +1,13 @@
-resource "aws_nat_gateway" "main" {
-  subnet_id     = var.subnet_id
-  allocation_id = var.allocation_id
+resource "aws_eip" "nat" {
+  domain = "vpc"
+  tags   = merge(var.tags, { Name = "qa-nat-eip" })
+}
+
+resource "aws_nat_gateway" "this" {
+  allocation_id = aws_eip.nat.id
+  subnet_id     = var.public_subnet_id
+
+  tags = merge(var.tags, {
+    Name = "qa-nat-gateway"
+  })
 }

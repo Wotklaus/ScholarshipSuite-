@@ -12,7 +12,8 @@ const Page = dynamic(() => import("react-pdf").then((m) => m.Page), {
   ssr: false,
 });
 
-const TEMPLATE_URL = "http://localhost:3002/static/Template-Exc.pdf";
+const TEMPLATE_URL = "http://localhost:8080/contracts/static/Template-Exc.pdf";
+
 
 type Hint = {
   id: string;
