@@ -446,10 +446,17 @@ export class ContractService {
       logo: `data:image/png;base64,${logoBase64}`,
     });
 
-    const browser = await puppeteer.launch({
-      headless: true,
-      args: ['--no-sandbox', '--disable-setuid-sandbox'],
-    });
+    let browser;
+    try {
+      browser = await puppeteer.launch({
+        headless: true,
+        args: ['--no-sandbox', '--disable-setuid-sandbox'],
+      });
+    } catch (err) {
+      console.error('🔥 PUPPETEER LAUNCH ERROR:', err);
+      throw err;
+    }
+
 
     try {
       const page = await browser.newPage();

@@ -5,6 +5,9 @@ import { useRouter } from "next/navigation";
 import { jwtDecode } from "jwt-decode";
 import styles from "./login.module.css";
 
+const API_URL =
+  process.env.NEXT_PUBLIC_API_URL || "http://localhost:8080";
+
 export default function LoginPage() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
@@ -16,9 +19,9 @@ export default function LoginPage() {
     setError("");
 
     try {
-      const response = await fetch("http://localhost:3000/auth/login", {
+      const response = await fetch(`${API_URL}/auth/login`, {
         method: "POST",
-        credentials: "include", // 🔑
+        credentials: "include", // 🔑 cookies
         headers: {
           "Content-Type": "application/json",
         },

@@ -1,4 +1,25 @@
+version: "3.9"
+
 services:
+  # -------------------------------
+  # FRONTEND (Next.js)
+  # -------------------------------
+  frontend:
+    image: wotklaus86682/web:qa
+    container_name: frontend
+    environment:
+      # El frontend SIEMPRE habla con el gateway por nombre de servicio
+      NEXT_PUBLIC_API_URL: http://api-gateway:8080
+    ports:
+      - "3001:3000"
+    depends_on:
+      - api-gateway
+    networks:
+      - scholarship-net
+
+  # -------------------------------
+  # AUTH SERVICE
+  # -------------------------------
   auth-service:
     image: wotklaus86682/auth-service:qa
     container_name: auth-service
@@ -8,8 +29,12 @@ services:
       KAFKA_BROKER: kafka:9093
     ports:
       - "3000:3000"
-    networks: [scholarship-net]
+    networks:
+      - scholarship-net
 
+  # -------------------------------
+  # CONTRACTS SERVICE
+  # -------------------------------
   contracts-service:
     image: wotklaus86682/contracts-service:qa
     container_name: contracts-service
@@ -19,8 +44,12 @@ services:
       KAFKA_BROKER: kafka:9093
     ports:
       - "3002:3002"
-    networks: [scholarship-net]
+    networks:
+      - scholarship-net
 
+  # -------------------------------
+  # SIGNATURE SERVICE
+  # -------------------------------
   signature-service:
     image: wotklaus86682/signature-service:qa
     container_name: signature-service
@@ -30,8 +59,12 @@ services:
       KAFKA_BROKER: kafka:9093
     ports:
       - "3004:3004"
-    networks: [scholarship-net]
+    networks:
+      - scholarship-net
 
+  # -------------------------------
+  # VALIDATION SERVICE
+  # -------------------------------
   validation-service:
     image: wotklaus86682/validation-service:qa
     container_name: validation-service
@@ -40,8 +73,12 @@ services:
       KAFKA_BROKER: kafka:9093
     ports:
       - "3003:3003"
-    networks: [scholarship-net]
+    networks:
+      - scholarship-net
 
+  # -------------------------------
+  # ANALYTICS SERVICE
+  # -------------------------------
   analytics-service:
     image: wotklaus86682/analytics-service:qa
     container_name: analytics-service
@@ -51,8 +88,12 @@ services:
       KAFKA_BROKER: kafka:9093
     ports:
       - "3009:3009"
-    networks: [scholarship-net]
+    networks:
+      - scholarship-net
 
+  # -------------------------------
+  # AUDIT SERVICE
+  # -------------------------------
   audit-service:
     image: wotklaus86682/audit-service:qa
     container_name: audit-service
@@ -61,8 +102,12 @@ services:
       KAFKA_BROKER: kafka:9093
     ports:
       - "3008:3008"
-    networks: [scholarship-net]
+    networks:
+      - scholarship-net
 
+  # -------------------------------
+  # EVENT BUS SERVICE
+  # -------------------------------
   event-bus-service:
     image: wotklaus86682/event-bus-service:qa
     container_name: event-bus-service
@@ -71,8 +116,12 @@ services:
       RABBITMQ_URL: amqp://admin:admin@rabbitmq:5672
     ports:
       - "3005:3005"
-    networks: [scholarship-net]
+    networks:
+      - scholarship-net
 
+  # -------------------------------
+  # NOTIFICATION SERVICE
+  # -------------------------------
   notification-service:
     image: wotklaus86682/notification-service:qa
     container_name: notification-service
@@ -82,8 +131,12 @@ services:
       MQTT_PORT: 1883
     ports:
       - "3007:3007"
-    networks: [scholarship-net]
+    networks:
+      - scholarship-net
 
+  # -------------------------------
+  # API GATEWAY (NGINX)
+  # -------------------------------
   api-gateway:
     image: wotklaus86682/api-gateway:qa
     container_name: api-gateway
@@ -94,8 +147,17 @@ services:
       SIGNATURE_SERVICE_URL: http://signature-service:3004
     ports:
       - "8080:8080"
-    networks: [scholarship-net]
+    depends_on:
+      - auth-service
+      - contracts-service
+      - validation-service
+      - signature-service
+    networks:
+      - scholarship-net
 
+# -------------------------------
+# NETWORK
+# -------------------------------
 networks:
   scholarship-net:
     external: true
