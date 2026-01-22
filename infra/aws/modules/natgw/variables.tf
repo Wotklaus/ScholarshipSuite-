@@ -1,3 +1,7 @@
-variable "allocation_id" {}
+variable "public_subnet_id" {
+  type = string
+}
 
-variable "subnet_id" {}
+variable "tags" {
+  type = map(string)
+}

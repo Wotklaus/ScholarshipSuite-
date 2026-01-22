@@ -1,1 +1,7 @@
-variable "vpc_id" {}
+variable "vpc_id" {
+  type = string
+}
+
+variable "tags" {
+  type = map(string)
+}
