@@ -1,3 +1,3 @@
 output "asg_id" {
-  value = aws_autoscaling_group.main.id
+  value = aws_autoscaling_group.this.id
 }

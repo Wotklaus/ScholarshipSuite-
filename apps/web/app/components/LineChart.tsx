@@ -8,59 +8,65 @@ import {
   LinearScale,
   Tooltip,
   Legend,
+  ChartItem,
 } from "chart.js";
 import styles from "./style/lineChart.module.css";
 
-// Registro de componentes necesarios para gráficos tipo "line"
-Chart.register(LineController, LineElement, PointElement, CategoryScale, LinearScale, Tooltip, Legend);
+Chart.register(
+  LineController,
+  LineElement,
+  PointElement,
+  CategoryScale,
+  LinearScale,
+  Tooltip,
+  Legend
+);
 
 const LineChart = () => {
-  const chartRef = useRef<HTMLCanvasElement>(null); // Referencia al canvas
-  const chartInstanceRef = useRef<Chart | null>(null); // Referencia para la instancia activa del gráfico
+  const chartRef = useRef<HTMLCanvasElement>(null);
+  const chartInstanceRef = useRef<Chart | null>(null);
 
   useEffect(() => {
     if (!chartRef.current) return;
 
     const ctx = chartRef.current.getContext("2d");
+    if (!ctx) return; // ✅ ESTA LÍNEA ES LA CLAVE
 
-    // Si ya hay una instancia activa, destruirla antes de crear una nueva
     if (chartInstanceRef.current) {
       chartInstanceRef.current.destroy();
     }
 
-    // Crear una nueva instancia del gráfico
-    chartInstanceRef.current = new Chart(ctx, {
-      type: "line", // Tipo gráfico
+    chartInstanceRef.current = new Chart(ctx as ChartItem, {
+      type: "line",
       data: {
-        labels: ["Enero", "Febrero", "Marzo", "Abril", "Mayo"], // Etiquetas del eje x
+        labels: ["Enero", "Febrero", "Marzo", "Abril", "Mayo"],
         datasets: [
           {
             label: "Contratos gestionados",
-            data: [100, 150, 200, 250, 300], // Datos para el eje y
+            data: [100, 150, 200, 250, 300],
             borderColor: "#007bff",
-            tension: 0.4, // Suaviza las curvas de las líneas
+            tension: 0.4,
           },
         ],
       },
       options: {
-        responsive: true, // Permitir respuestas adaptativas
+        responsive: true,
         plugins: {
           legend: {
-            display: true, // Mostrar la leyenda
-            position: "top", // Posicionamiento de la leyenda
+            display: true,
+            position: "top",
           },
         },
       },
     });
 
-    // Cleanup: destruir la instancia del gráfico cuando el componente se desmonte
     return () => {
       if (chartInstanceRef.current) {
         chartInstanceRef.current.destroy();
         chartInstanceRef.current = null;
       }
     };
-  }, []); // Dependencias vacías para ejecutar solo cuando el componente se monte
+  }, []);
 
   return (
     <div className={styles.container}>
