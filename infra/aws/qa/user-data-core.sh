@@ -1,24 +1,15 @@
 #!/bin/bash
 set -e
 
-# Actualizar sistema
 yum update -y
 
-# Instalar Docker (Amazon Linux)
 amazon-linux-extras install docker -y
-systemctl start docker
 systemctl enable docker
+systemctl start docker
 usermod -aG docker ec2-user
 
-# Crear red usada por el sistema
+curl -L https://github.com/docker/compose/releases/download/v2.25.0/docker-compose-linux-x86_64 \
+  -o /usr/local/bin/docker-compose
+chmod +x /usr/local/bin/docker-compose
+
 docker network create scholarship-net || true
-
-# Descargar imagen del API Gateway
-docker pull wotklaus86682/api-gateway:qa
-
-# Levantar API Gateway
-docker run -d \
-  --name api-gateway \
-  --network scholarship-net \
-  -p 8080:8080 \
-  wotklaus86682/api-gateway:qa
