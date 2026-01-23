@@ -33,7 +33,8 @@ export class KafkaAuditConsumer implements OnModuleInit {
         const event = JSON.parse(message.value.toString());
 
         this.logger.log(`📥 USER_LOGGED_IN received → ${event.userId}`);
-
+         
+        
         await this.auditService.saveEvent({
           eventType: 'USER_LOGGED_IN',
           source: 'auth-service',
