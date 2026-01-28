@@ -1,0 +1,39 @@
+.container {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  background-color: #ffffff; /* Fondo blanco */
+  border-radius: 8px; /* Bordes redondeados */
+  box-shadow: 0px 4px 6px rgba(0, 0, 0, 0.1); /* Sombra ligera */
+  padding: 1.5rem; /* Espaciado interno */
+}
+
+.title {
+  font-size: 1.2rem; /* Tamaño del título */
+  font-weight: bold; /* Texto en negrita */
+  margin-bottom: 1rem; /* Espaciado entre el título y el gráfico */
+  color: #383e43; /* Color del texto */
+}
+
+.chartWrapper {
+  display: flex; /* Distribuye el gráfico y la leyenda lado a lado */
+  justify-content: space-between;
+  align-items: center;
+}
+
+.canvas {
+  width: 150px; /* Redimensiona el gráfico */
+  height: 150px; /* Redimensiona el gráfico */
+}
+
+.legend {
+  list-style: none; /* Quita puntos innecesarios */
+  padding: 0;
+  margin: 0;
+}
+
+.legendItem {
+  font-size: 0.9rem; /* Tamaño compacto */
+  margin-bottom: 0.5rem;
+}

@@ -4,11 +4,15 @@
   "scripts": {
     "build": "turbo run build",
     "dev": "turbo run dev",
+    "dev:services": "turbo run dev --filter=services/*",
+    "dev:web": "turbo run dev --filter=apps/web",
+    "dev:all": "turbo run dev --concurrency=15",
     "lint": "turbo run lint",
     "format": "prettier --write \"**/*.{ts,tsx,md}\"",
     "check-types": "turbo run check-types"
   },
   "devDependencies": {
+    "@cyclonedx/cyclonedx-npm": "^4.1.2",
     "prettier": "^3.7.4",
     "turbo": "^2.6.3",
     "typescript": "5.9.2"
@@ -19,6 +23,11 @@
   "packageManager": "npm@10.9.3",
   "workspaces": [
     "apps/*",
-    "packages/*"
-  ]
+    "packages/*",
+    "services/*",
+    "gateway"
+  ],
+  "dependencies": {
+    "rxjs": "^7.8.1"
+  }
 }

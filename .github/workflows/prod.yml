@@ -1,0 +1,90 @@
+name: CI - MAIN Production Pipeline
+
+on:
+  push:
+    branches:
+      - main
+
+jobs:
+  build-and-push:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 18
+
+      - name: Install dependencies
+        run: npm install
+
+      - name: Run tests
+        run: npm test
+
+      - name: Login to Docker Hub
+        uses: docker/login-action@v3
+        with:
+          username: ${{ secrets.DOCKERHUB_USER }}
+          password: ${{ secrets.DOCKERHUB_TOKEN }}
+
+      - name: Build & Push auth-service
+        run: |
+          docker build -t wotklaus86682/auth-service:prod ./services/auth-service
+          docker push wotklaus86682/auth-service:prod
+
+      - name: Build & Push contracts-service
+        run: |
+          docker build -t wotklaus86682/contracts-service:prod ./services/contracts-service
+          docker push wotklaus86682/contracts-service:prod
+
+      - name: Build & Push validation-service
+        run: |
+          docker build -t wotklaus86682/validation-service:prod ./services/validation-service
+          docker push wotklaus86682/validation-service:prod
+
+      - name: Build & Push signature-service
+        run: |
+          docker build -t wotklaus86682/signature-service:prod ./services/signature-service
+          docker push wotklaus86682/signature-service:prod
+
+      - name: Build & Push audit-service
+        run: |
+          docker build -t wotklaus86682/audit-service:prod ./services/audit-service
+          docker push wotklaus86682/audit-service:prod
+
+      - name: Build & Push analytics-service
+        run: |
+          docker build -t wotklaus86682/analytics-service:prod ./services/analytics-service
+          docker push wotklaus86682/analytics-service:prod
+
+      - name: Build & Push event-bus-service
+        run: |
+          docker build -t wotklaus86682/event-bus-service:prod ./services/event-bus-service
+          docker push wotklaus86682/event-bus-service:prod
+
+      - name: Build & Push notification-service
+        run: |
+          docker build -t wotklaus86682/notification-service:prod ./services/notification-service
+          docker push wotklaus86682/notification-service:prod
+
+      - name: Build & Push api-gateway
+        run: |
+          docker build -t wotklaus86682/api-gateway:prod ./gateway
+          docker push wotklaus86682/api-gateway:prod
+
+      # =========================
+      # AWS AUTH (FEDERATED)
+      # =========================
+      - name: Configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-session-token: ${{ secrets.AWS_SESSION_TOKEN }}
+          aws-region: ${{ secrets.AWS_REGION }}
+
+      - name: Verify AWS identity
+        run: aws sts get-caller-identity

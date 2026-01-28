@@ -1,98 +1,71 @@
-<p align="center">
-  <a href="http://nestjs.com/" target="blank"><img src="https://nestjs.com/img/logo-small.svg" width="120" alt="Nest Logo" /></a>
-</p>
+# Analytics Service – Scholarship Contract System
 
-[circleci-image]: https://img.shields.io/circleci/build/github/nestjs/nest/master?token=abc123def456
-[circleci-url]: https://circleci.com/gh/nestjs/nest
+## Overview
+The **Analytics Service** is a read-model and projection microservice within the Scholarship Contract Management System.
 
-  <p align="center">A progressive <a href="http://nodejs.org" target="_blank">Node.js</a> framework for building efficient and scalable server-side applications.</p>
-    <p align="center">
-<a href="https://www.npmjs.com/~nestjscore" target="_blank"><img src="https://img.shields.io/npm/v/@nestjs/core.svg" alt="NPM Version" /></a>
-<a href="https://www.npmjs.com/~nestjscore" target="_blank"><img src="https://img.shields.io/npm/l/@nestjs/core.svg" alt="Package License" /></a>
-<a href="https://www.npmjs.com/~nestjscore" target="_blank"><img src="https://img.shields.io/npm/dm/@nestjs/common.svg" alt="NPM Downloads" /></a>
-<a href="https://circleci.com/gh/nestjs/nest" target="_blank"><img src="https://img.shields.io/circleci/build/github/nestjs/nest/master" alt="CircleCI" /></a>
-<a href="https://discord.gg/G7Qnnhy" target="_blank"><img src="https://img.shields.io/badge/discord-online-brightgreen.svg" alt="Discord"/></a>
-<a href="https://opencollective.com/nest#backer" target="_blank"><img src="https://opencollective.com/nest/backers/badge.svg" alt="Backers on Open Collective" /></a>
-<a href="https://opencollective.com/nest#sponsor" target="_blank"><img src="https://opencollective.com/nest/sponsors/badge.svg" alt="Sponsors on Open Collective" /></a>
-  <a href="https://paypal.me/kamilmysliwiec" target="_blank"><img src="https://img.shields.io/badge/Donate-PayPal-ff3f59.svg" alt="Donate us"/></a>
-    <a href="https://opencollective.com/nest#sponsor"  target="_blank"><img src="https://img.shields.io/badge/Support%20us-Open%20Collective-41B883.svg" alt="Support us"></a>
-  <a href="https://twitter.com/nestframework" target="_blank"><img src="https://img.shields.io/twitter/follow/nestframework.svg?style=social&label=Follow" alt="Follow us on Twitter"></a>
-</p>
-  <!--[![Backers on Open Collective](https://opencollective.com/nest/backers/badge.svg)](https://opencollective.com/nest#backer)
-  [![Sponsors on Open Collective](https://opencollective.com/nest/sponsors/badge.svg)](https://opencollective.com/nest#sponsor)-->
+Its primary responsibility is to provide **fast, optimized, and query-ready views** of system state by consuming **domain events** and storing **aggregated projections** in **Redis**.
 
-## Description
+This service **does not own business logic**, **does not write to relational databases**, and **does not expose transactional APIs**.  
+It exists purely to support **CQRS**, **event-driven analytics**, and **high-performance reads**.
 
-[Nest](https://github.com/nestjs/nest) framework TypeScript starter repository.
+---
 
-## Project setup
+## Responsibilities
+- Consume domain events from Kafka
+- Build read-model projections from events
+- Store aggregated state in Redis
+- Provide fast query endpoints for frontend and dashboards
+- Decouple read operations from transactional services
+- Act as a cache-backed analytics and query service
+- Expose minimal APIs for health checks and read access
 
-```bash
-$ npm install
-```
+---
 
-## Compile and run the project
+## Architecture
 
-```bash
-# development
-$ npm run start
+### Applied Architecture Patterns
 
-# watch mode
-$ npm run start:dev
+#### Event-Driven Architecture (EDA)
+- Business services emit domain events (Kafka)
+- Analytics Service subscribes to relevant topics
+- State is derived **only from events**
+- No direct coupling with producers
 
-# production mode
-$ npm run start:prod
-```
+#### CQRS (Command Query Responsibility Segregation)
+- **Commands** are handled by business services
+- **Queries** are handled by Analytics Service
+- Redis acts as a read-optimized data store
+- Write and read concerns are fully separated
 
-## Run tests
+#### Cache-as-Read-Model Pattern
+- Redis is not used as a simple cache
+- It stores **event-derived projections**
+- State can be rebuilt from the event log if needed
 
-```bash
-# unit tests
-$ npm run test
+---
 
-# e2e tests
-$ npm run test:e2e
+## Design Principles
+- **Single Responsibility Principle (SRP)** – only analytics and read models
+- **Asynchronous Communication** – Kafka-based event consumption
+- **Scalability** – Redis-backed reads and Kafka consumer groups
+- **Fault Tolerance** – projections can be rebuilt from events
 
-# test coverage
-$ npm run test:cov
-```
+---
 
-## Deployment
+## Tech Stack
+- **Framework**: NestJS
+- **Language**: TypeScript
+- **Message Broker**: Apache Kafka
+- **Cache / Read Store**: Redis
+- **Configuration**: @nestjs/config
+- **Runtime**: Node.js
+- **API Documentation**: http://localhost:3009/docs
 
-When you're ready to deploy your NestJS application to production, there are some key steps you can take to ensure it runs as efficiently as possible. Check out the [deployment documentation](https://docs.nestjs.com/deployment) for more information.
+---
 
-If you are looking for a cloud-based platform to deploy your NestJS application, check out [Mau](https://mau.nestjs.com), our official platform for deploying NestJS applications on AWS. Mau makes deployment straightforward and fast, requiring just a few simple steps:
+## Data Storage Strategy
 
-```bash
-$ npm install -g @nestjs/mau
-$ mau deploy
-```
+### Redis Usage
+Redis stores **aggregated contract summaries** derived from events.
 
-With Mau, you can deploy your application in just a few clicks, allowing you to focus on building features rather than managing infrastructure.
-
-## Resources
-
-Check out a few resources that may come in handy when working with NestJS:
-
-- Visit the [NestJS Documentation](https://docs.nestjs.com) to learn more about the framework.
-- For questions and support, please visit our [Discord channel](https://discord.gg/G7Qnnhy).
-- To dive deeper and get more hands-on experience, check out our official video [courses](https://courses.nestjs.com/).
-- Deploy your application to AWS with the help of [NestJS Mau](https://mau.nestjs.com) in just a few clicks.
-- Visualize your application graph and interact with the NestJS application in real-time using [NestJS Devtools](https://devtools.nestjs.com).
-- Need help with your project (part-time to full-time)? Check out our official [enterprise support](https://enterprise.nestjs.com).
-- To stay in the loop and get updates, follow us on [X](https://x.com/nestframework) and [LinkedIn](https://linkedin.com/company/nestjs).
-- Looking for a job, or have a job to offer? Check out our official [Jobs board](https://jobs.nestjs.com).
-
-## Support
-
-Nest is an MIT-licensed open source project. It can grow thanks to the sponsors and support by the amazing backers. If you'd like to join them, please [read more here](https://docs.nestjs.com/support).
-
-## Stay in touch
-
-- Author - [Kamil Myśliwiec](https://twitter.com/kammysliwiec)
-- Website - [https://nestjs.com](https://nestjs.com/)
-- Twitter - [@nestframework](https://twitter.com/nestframework)
-
-## License
-
-Nest is [MIT licensed](https://github.com/nestjs/nest/blob/master/LICENSE).
+Example logical structure:
